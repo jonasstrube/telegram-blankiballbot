@@ -10,13 +10,15 @@ from datetime import (
 ) 
 
 from telegram import (
-    Update
+    Update,
+    ReplyKeyboardMarkup
 )
 from telegram.ext import (
     Updater,
     CallbackContext,
     CommandHandler,
     MessageHandler,
+    ConversationHandler,
     PicklePersistence,
     Filters
 )
@@ -37,6 +39,13 @@ logger = logging.getLogger(__name__)
 
 # --------------- global vars ----------------
 
+HOME_CHOOSING = range(1)
+
+keyboard_main = [
+    ['Spiel eintragen', 'Spielplan anzeigen'],
+    ['Organisation', 'Infos', 'FAQ', 'About']
+]
+
 # ---------------------------------------------
 
 def admin_status(update: Update, context: CallbackContext) -> None:
@@ -44,13 +53,17 @@ def admin_status(update: Update, context: CallbackContext) -> None:
     date_string = last_restart_date.strftime("%d.%m.%Y at %H:%M") #12.04.2021 at 16:25
     update.message.reply_text("last restart: " + date_string)
 
-def start(update: Update, context: CallbackContext) -> None:
+def start(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text("Hi! Schön dass du da bist", reply_markup = ReplyKeyboardMarkup(keyboard_main))
+    return HOME_CHOOSING
 
-    update.message.reply_text("Hallo " + update.message.from_user.first_name + ", komm rein! Leg schon mal deine Jacke ab, Setz dich und nimm dir nen Cookie. Fühl dich wie zuhause!")
-    update.message.reply_text("Bald wird hier ordentlich Funktionalität reingepumpt, Jonas und Richard sind aber grad noch an anderen Sachen dran")
-    update.message.reply_text("Machs dir schon mal bequem, schau dich um und präg dir alles gut ein. In ein paar Tagen wird hier nichts mehr aussehen wie davor. Jonas hat gesagt \"Alles wird sich verändern! Kein Softwarebaustein bleibt auf dem anderen!\"")
-    update.message.reply_text("Das wird sicher super. Ich bin mindestens genauso gehyped wie du!")
-    update.message.reply_text("Liebe Grüße, dein Hermann Blankenstein")
+def spiel_eintragen(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text('Danke fürs Eintragen!')
+    return HOME_CHOOSING
+
+def abbrechen(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text("Jo, nix passiert", reply_markup = ReplyKeyboardMarkup(keyboard_main))
+    return HOME_CHOOSING
 
 # ------------------ run -----------------------
 
@@ -63,10 +76,18 @@ def main():
 
     dp.bot_data["last_bot_restart"] = datetime.now()
 
-    dp.add_handler(MessageHandler(Filters.regex('^status$'), admin_status))
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(MessageHandler(Filters.text, start))
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            HOME_CHOOSING: [
+                MessageHandler(Filters.regex('^(' +  keyboard_main[0][0] +')$'), spiel_eintragen)]
+        },
+        fallbacks=[MessageHandler(Filters.regex('^Abbrechen$'), abbrechen)],
+    )
 
+    dp.add_handler(MessageHandler(Filters.regex('^status$'), admin_status))
+    dp.add_handler(conv_handler)
+    
     # Start the Bot
     updater.start_polling()
     updater.idle()
