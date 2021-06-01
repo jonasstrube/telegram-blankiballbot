@@ -83,6 +83,8 @@ def main():
                 MessageHandler(Filters.regex('^(' +  keyboard_main[0][0] +')$'), spiel_eintragen)]
         },
         fallbacks=[MessageHandler(Filters.regex('^Abbrechen$'), abbrechen)],
+        name="home_conversation",
+        persistent=True,
     )
 
     dp.add_handler(MessageHandler(Filters.regex('^status$'), admin_status))
