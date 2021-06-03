@@ -91,6 +91,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
                 single_row_content.append(current_team['name'] + " (" + current_team['kuerzel'] + ")")
             keyboard_answer.append(single_row_content)
 
+        # TODO ihr seid grad in der Gruppenphase, gegen welches dieser Teams habt ihr gespielt?
         update.message.reply_text('Gegen welches Team habt ihr gespielt?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
         return SPIEL_EINTRAGEN_TEAMAUSWAEHLEN
     else:
