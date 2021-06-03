@@ -121,11 +121,19 @@ def einstellungen_team_aendern(update: Update, context: CallbackContext) -> int:
                 row_content.append(possible_teams[row*3 + column]['name'] + " (" + possible_teams[row*3 + column]['kuerzel'] + ")")
         keyboard_answer.append(row_content)
     
+    context.chat_data['einstellungen_possible_teams'] = possible_teams
     update.message.reply_text('Okay. Zu welchem Team gehörst du denn? (Du kannst durch die Liste scrollen)', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
     return EINSTELLUNGEN_TEAM_SPEICHERN
 
 def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #from state EINSTELLUNGEN_TEAM_SPEICHERN
-    keyboard_answer =[['Team einstellen']]
+    team_kuerzel = ''   # TODO
+    team_name = ''      # TODO
+    possible_teams = context.chat_data['einstellungen_possible_teams']
+    for team in possible_teams:
+        if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
+            context.user_data['team_id'] = int(team['id'])
+            break
+    del(context.chat_data['einstellungen_possible_teams'])
     update.message.reply_text('nice! You got here', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME_WAEHLEN
 
