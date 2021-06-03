@@ -46,11 +46,12 @@ logger = logging.getLogger(__name__)
 
 # --------------- global vars ----------------
 
-HOME_CHOOSING, SPIEL_EINTRAGEN_TEAMAUSWAEHLEN = range(2)
+HOME_WAEHLEN, SPIEL_EINTRAGEN_TEAMAUSWAEHLEN, EINSTELLUNGEN_WAEHLEN, EINSTELLUNGEN_TEAM_SPEICHERN = range(4)
 
 keyboard_main = [
     ['Spiel eintragen', 'Spielplan anzeigen'],
-    ['Organisation', 'Infos', 'FAQ', 'About']
+    ['Organisation', 'Infos'],
+    ['FAQ', 'About', 'Settings']
 ]
 
 # ---------------------------------------------
@@ -62,13 +63,12 @@ def admin_status(update: Update, context: CallbackContext) -> None:
 
 def start(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Hi! Schön dass du da bist", reply_markup = ReplyKeyboardMarkup(keyboard_main))
-    return HOME_CHOOSING
+    return HOME_WAEHLEN
 
 def spiel_eintragen(update: Update, context: CallbackContext) -> int:
     team_id = context.user_data.get('team_id')
 
-    # TODO if team_id:
-    if True:
+    if team_id:
         answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + str(team_id)) # get all possible opponents of the team of the user
         possible_opponent_teams = json.loads(answer_api.text)['records']
 
@@ -96,16 +96,42 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
     else:
         # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
         update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, da kann ich dir grad nicht helfen beim Eintragen :/', reply_markup=ReplyKeyboardMarkup(keyboard_main))
-        return HOME_CHOOSING
-
+        return HOME_WAEHLEN
 
 def spiel_eintragen_ergebnisteam1(update: Update, context: CallbackContext) -> int:
     update.message.reply_text('-- Dialog beendet --', reply_markup=ReplyKeyboardMarkup(keyboard_main))
-    return HOME_CHOOSING
+    return HOME_WAEHLEN
+
+def einstellungen_waehlen(update: Update, context: CallbackContext) -> int: #from state HOME_WAEHLEN
+    keyboard_answer =[['Team einstellen']]
+    update.message.reply_text('Aye Aye! Was willst du einstellen?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+    return EINSTELLUNGEN_WAEHLEN
+
+def einstellungen_team_aendern(update: Update, context: CallbackContext) -> int: #from state EINSTELLUNGEN_WAEHLEN
+    answer_api = requests.get('https://blankiball.de/api/team/read.php') # get all possible teams the user could be in
+    possible_teams = json.loads(answer_api.text)['records']
+    
+    #  TODO refactor for more efficiency
+    keyboard_answer = []
+    teams_per_row = 3
+    for row in range(math.ceil(len(possible_teams) / teams_per_row)):
+        row_content = []
+        for column in range(teams_per_row):
+            if not row*3 + column >= len(possible_teams):
+                row_content.append(possible_teams[row*3 + column]['name'] + " (" + possible_teams[row*3 + column]['kuerzel'] + ")")
+        keyboard_answer.append(row_content)
+    
+    update.message.reply_text('Okay. Zu welchem Team gehörst du denn? (Du kannst durch die Liste scrollen)', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+    return EINSTELLUNGEN_TEAM_SPEICHERN
+
+def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #from state EINSTELLUNGEN_TEAM_SPEICHERN
+    keyboard_answer =[['Team einstellen']]
+    update.message.reply_text('nice! You got here', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    return HOME_WAEHLEN
 
 def abbrechen(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Jo, nix passiert", reply_markup = ReplyKeyboardMarkup(keyboard_main))
-    return HOME_CHOOSING
+    return HOME_WAEHLEN
 
 # ------------------ run -----------------------
 
@@ -121,10 +147,17 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            HOME_CHOOSING: [
-                MessageHandler(Filters.regex('^(' +  keyboard_main[0][0] +')$'), spiel_eintragen)],
+            HOME_WAEHLEN: [
+                # TODO refactor main keyboard so that it also receives the values from variables. Then, the filters here can get the menu points from the unique variables rather than from the changeable keyboard array
+                MessageHandler(Filters.regex('^(' +  keyboard_main[0][0] +')$'), spiel_eintragen),
+                MessageHandler(Filters.regex('^(' +  keyboard_main[2][2] +')$'), einstellungen_waehlen)
+                ],
             SPIEL_EINTRAGEN_TEAMAUSWAEHLEN: [
-                MessageHandler(Filters.text, spiel_eintragen_ergebnisteam1)]
+                MessageHandler(Filters.text, spiel_eintragen_ergebnisteam1)],
+            EINSTELLUNGEN_WAEHLEN: [
+                MessageHandler(Filters.regex('^(Team einstellen)$'), einstellungen_team_aendern)], # TODO refactor 'Team einstellen' into variable
+            EINSTELLUNGEN_TEAM_SPEICHERN: [
+                MessageHandler(Filters.text, einstellungen_team_speichern)] # TODO refactor 'Team einstellen' into variable
         },
         fallbacks=[MessageHandler(Filters.regex('^Abbrechen$'), abbrechen)],
         name="home_conversation",
