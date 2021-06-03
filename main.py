@@ -95,7 +95,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
         return SPIEL_EINTRAGEN_TEAMAUSWAEHLEN
     else:
         # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
-        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, da kann ich dir grad nicht helfen beim Eintragen :/', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Einstellugen, da kannst du mir das schreiben', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME_WAEHLEN
 
 def spiel_eintragen_ergebnisteam1(update: Update, context: CallbackContext) -> int:
@@ -126,15 +126,22 @@ def einstellungen_team_aendern(update: Update, context: CallbackContext) -> int:
     return EINSTELLUNGEN_TEAM_SPEICHERN
 
 def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #from state EINSTELLUNGEN_TEAM_SPEICHERN
-    team_kuerzel = ''   # TODO
-    team_name = ''      # TODO
+    # retrieve the team name and kuerzel from the user message
+    team_string =  update.message.text
+    team_string_split = team_string.split()
+    team_kuerzel_with_brackets = team_string_split[-1]
+    team_name_split = team_string_split[:-1]  
+    team_kuerzel = team_kuerzel_with_brackets[1:-1]
+    team_name = " ".join(team_name_split)
+
     possible_teams = context.chat_data['einstellungen_possible_teams']
     for team in possible_teams:
         if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
             context.user_data['team_id'] = int(team['id'])
             break
     del(context.chat_data['einstellungen_possible_teams'])
-    update.message.reply_text('nice! You got here', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+
+    update.message.reply_text('Nice! Jetzt weiß ich dass du zum Team ' + team_name + ' gehörst 👌', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME_WAEHLEN
 
 def abbrechen(update: Update, context: CallbackContext) -> int:
