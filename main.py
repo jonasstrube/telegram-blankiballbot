@@ -67,7 +67,8 @@ def start(update: Update, context: CallbackContext) -> int:
 def spiel_eintragen(update: Update, context: CallbackContext) -> int:
     team_id = context.user_data.get('team_id')
 
-    if team_id:
+    # TODO if team_id:
+    if True:
         # TODO answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + team_id) # get all possible opponents of the team of the user
         answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php') # get all possible opponents of the dummy team 67 (id manually set in backend)
         possible_opponent_teams = json.loads(answer_api.text)['records']
