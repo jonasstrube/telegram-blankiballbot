@@ -14,6 +14,7 @@ from datetime import (
 )
 import requests
 import json
+import math
 
 from telegram import (
     Update,
@@ -66,17 +67,44 @@ def start(update: Update, context: CallbackContext) -> int:
 def spiel_eintragen(update: Update, context: CallbackContext) -> int:
     team_id = context.user_data.get('team_id')
 
-    # answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + team_id) # get all possible opponents of the team of the user
-    answer_api = requests.get('https://blankiball.de/api/team/read.php')
-    possible_opponent_teams: List = json.loads(answer_api.text)
+    if team_id:
+        # answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + team_id) # get all possible opponents of the team of the user
+        answer_api = requests.get('https://blankiball.de/api/team/read.php')
+        possible_opponent_teams = json.loads(answer_api.text)['records']
 
-    # TODO iterate through the "possible_opponent_teams", get all names of them and distribute them through the keyboard (1x2, 1x3, 2x2, 3+2, 2x3)
-    keyboard_answer = [
-        ['dummy team 1 (dt1)', 'dummy team 2 (dt2)']    
-    ]
+        dummy_teams = []
+        num = 3
+        tree = 5
+        for i in range(num):
+            dummy_teams.append(possible_opponent_teams[i])
+        possible_opponent_teams = dummy_teams
 
-    update.message.reply_text('Gegen welches Team habt ihr gespielt?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
-    return SPIEL_EINTRAGEN_TEAMAUSWAEHLEN
+        # iterate through all possible opponent teams and distribute them through the keyboard (1: [1], 2: [1, 2], 3: [1, 2][3], 4: [1, 2][3, 4], 5: [1, 2, 3][4, 5], 6: [1, 2, 3][4, 5, 6], etc)
+        keyboard_answer = []
+        teams_count = len(possible_opponent_teams)
+        teams_index = 0
+        y_row_height = round(math.sqrt(teams_count))
+        div = teams_count / y_row_height
+        div_modulo = div % 1
+        for y_row in range(y_row_height):
+            if div_modulo == 0 or (y_row + 1) / y_row_height <= div_modulo + 0.0001:
+                x_row_length: int = math.ceil(div)
+            else:
+                x_row_length: int = math.ceil(div - 1)
+            y_row_content = []
+            for x_row in range(x_row_length):
+                current_team = possible_opponent_teams[teams_index]
+                teams_index = teams_index + 1
+                y_row_content.append(current_team['name'] + " (" + current_team['kuerzel'] + ")")
+            keyboard_answer.append(y_row_content)
+
+        update.message.reply_text('Gegen welches Team habt ihr gespielt?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+        return SPIEL_EINTRAGEN_TEAMAUSWAEHLEN
+    else:
+        # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, da kann ich dir grad nicht helfen :/', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME_CHOOSING
+
 
 def spiel_eintragen_ergebnisteam1(update: Update, context: CallbackContext) -> int:
     update.message.reply_text('-- Dialog beendet --', reply_markup=ReplyKeyboardMarkup(keyboard_main))
