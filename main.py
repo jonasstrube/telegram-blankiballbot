@@ -73,9 +73,9 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
         possible_opponent_teams = json.loads(answer_api.text)['records']
 
         dummy_teams = []
-        num = 3
-        tree = 5
-        for i in range(num):
+        dummy_teams_count = 3
+        placeholder_variable = "placeholder for debugging before loop"
+        for i in range(dummy_teams_count):
             dummy_teams.append(possible_opponent_teams[i])
         possible_opponent_teams = dummy_teams
 
@@ -83,26 +83,26 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
         keyboard_answer = []
         teams_count = len(possible_opponent_teams)
         teams_index = 0
-        y_row_height = round(math.sqrt(teams_count))
-        div = teams_count / y_row_height
-        div_modulo = div % 1
-        for y_row in range(y_row_height):
-            if div_modulo == 0 or (y_row + 1) / y_row_height <= div_modulo + 0.0001:
-                x_row_length: int = math.ceil(div)
+        row_count = round(math.sqrt(teams_count))
+        average_column_count = teams_count / row_count
+        average_column_count_modulo = average_column_count % 1
+        for current_row in range(row_count):
+            if average_column_count_modulo == 0 or (current_row + 1) / row_count <= average_column_count_modulo + 0.0001:
+                column_count: int = math.ceil(average_column_count)
             else:
-                x_row_length: int = math.ceil(div - 1)
-            y_row_content = []
-            for x_row in range(x_row_length):
+                column_count: int = math.ceil(average_column_count - 1)
+            single_row_content = []
+            for current_column in range(column_count):
                 current_team = possible_opponent_teams[teams_index]
-                teams_index = teams_index + 1
-                y_row_content.append(current_team['name'] + " (" + current_team['kuerzel'] + ")")
-            keyboard_answer.append(y_row_content)
+                teams_index += 1
+                single_row_content.append(current_team['name'] + " (" + current_team['kuerzel'] + ")")
+            keyboard_answer.append(single_row_content)
 
         update.message.reply_text('Gegen welches Team habt ihr gespielt?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
         return SPIEL_EINTRAGEN_TEAMAUSWAEHLEN
     else:
         # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
-        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, da kann ich dir grad nicht helfen :/', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, da kann ich dir grad nicht helfen beim Eintragen :/', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME_CHOOSING
 
 
