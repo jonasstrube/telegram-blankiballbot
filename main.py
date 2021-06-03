@@ -68,16 +68,9 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
     team_id = context.user_data.get('team_id')
 
     if team_id:
-        # answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + team_id) # get all possible opponents of the team of the user
-        answer_api = requests.get('https://blankiball.de/api/team/read.php')
+        # TODO answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + team_id) # get all possible opponents of the team of the user
+        answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php') # get all possible opponents of the dummy team 67 (id manually set in backend)
         possible_opponent_teams = json.loads(answer_api.text)['records']
-
-        dummy_teams = []
-        dummy_teams_count = 3
-        placeholder_variable = "placeholder for debugging before loop"
-        for i in range(dummy_teams_count):
-            dummy_teams.append(possible_opponent_teams[i])
-        possible_opponent_teams = dummy_teams
 
         # iterate through all possible opponent teams and distribute them through the keyboard (1: [1], 2: [1, 2], 3: [1, 2][3], 4: [1, 2][3, 4], 5: [1, 2, 3][4, 5], 6: [1, 2, 3][4, 5, 6], etc)
         keyboard_answer = []
