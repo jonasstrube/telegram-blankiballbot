@@ -18,7 +18,8 @@ import math
 
 from telegram import (
     Update,
-    ReplyKeyboardMarkup
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove
 )
 from telegram.ext import (
     Updater,
@@ -46,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 # --------------- global vars ----------------
 
-HOME_WAEHLEN, SPIEL_EINTRAGEN_TEAMAUSWAEHLEN, EINSTELLUNGEN_WAEHLEN, EINSTELLUNGEN_TEAM_SPEICHERN = range(4)
+HOME_WAEHLEN, SPIEL_EINTRAGEN_TEAMAUSWAEHLEN, EINSTELLUNGEN_WAEHLEN, EINSTELLUNGEN_TEAM_VERIFIZIEREN, EINSTELLUNGEN_TEAM_SPEICHERN = range(5)
 
 keyboard_main = [
     ['Spiel eintragen', 'Spielplan anzeigen'],
@@ -103,12 +104,12 @@ def spiel_eintragen_ergebnisteam1(update: Update, context: CallbackContext) -> i
     update.message.reply_text('-- Dialog beendet --', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME_WAEHLEN
 
-def einstellungen_waehlen(update: Update, context: CallbackContext) -> int: #from state HOME_WAEHLEN
+def einstellungen_waehlen(update: Update, context: CallbackContext) -> int: #after state HOME_WAEHLEN
     keyboard_answer =[['Team einstellen']]
     update.message.reply_text('Aye Aye! Was willst du einstellen?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
     return EINSTELLUNGEN_WAEHLEN
 
-def einstellungen_team_aendern(update: Update, context: CallbackContext) -> int: #from state EINSTELLUNGEN_WAEHLEN
+def einstellungen_team_aendern(update: Update, context: CallbackContext) -> int: #after state EINSTELLUNGEN_WAEHLEN
     answer_api = requests.get('https://blankiball.de/api/team/read.php') # get all possible teams the user could be in
     possible_teams = json.loads(answer_api.text)['records']
     
@@ -123,10 +124,11 @@ def einstellungen_team_aendern(update: Update, context: CallbackContext) -> int:
         keyboard_answer.append(row_content)
     
     context.chat_data['einstellungen_possible_teams'] = possible_teams
-    update.message.reply_text('Okay. Zu welchem Team gehörst du denn? (Du kannst durch die Liste scrollen)', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
-    return EINSTELLUNGEN_TEAM_SPEICHERN
+    mymessage = update.message.reply_text('Okay. Zu welchem Team gehörst du denn? (Du kannst durch die Liste scrollen)', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+    return EINSTELLUNGEN_TEAM_VERIFIZIEREN
 
-def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #from state EINSTELLUNGEN_TEAM_SPEICHERN
+def einstellungen_team_verifizieren(update: Update, context: CallbackContext) -> int: #after state EINSTELLUNGEN_TEAM_VERIFIZIEREN
+      
     # retrieve the team name and kuerzel from the user message
     team_string =  update.message.text
     team_string_split = team_string.split()
@@ -134,15 +136,29 @@ def einstellungen_team_speichern(update: Update, context: CallbackContext) -> in
     team_name_split = team_string_split[:-1]  
     team_kuerzel = team_kuerzel_with_brackets[1:-1]
     team_name = " ".join(team_name_split)
+    # save team name and kuerzel to the chat data, so that we can use them in next dialog function
+    context.chat_data['chosen_team_kuerzel'] =  team_kuerzel
+    context.chat_data['chosen_team_name'] =  team_name
+    
+    update.message.reply_text('Wie ist das Passwort eures Teams? \n\n (hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)', reply_markup=ReplyKeyboardRemove())
+    return EINSTELLUNGEN_TEAM_SPEICHERN
+
+def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #after state EINSTELLUNGEN_TEAM_SPEICHERN
+
+    # TODO check if passwort is right
 
     possible_teams = context.chat_data['einstellungen_possible_teams']
+    team_kuerzel = context.chat_data['chosen_team_kuerzel']
+    team_name = context.chat_data['chosen_team_name']
     for team in possible_teams:
         if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
             context.user_data['team_id'] = int(team['id'])
             break
     del(context.chat_data['einstellungen_possible_teams'])
+    del(context.chat_data['chosen_team_kuerzel'])
+    del(context.chat_data['chosen_team_name'])
 
-    update.message.reply_text('Nice! Jetzt weiß ich dass du zum Team ' + team_name + ' gehörst 👌', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    update.message.reply_text('Nice! Jetzt weiß ich dass du zum Team "' + team_name + '" gehörst 👌', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME_WAEHLEN
 
 def abbrechen(update: Update, context: CallbackContext) -> int:
@@ -172,8 +188,10 @@ def main():
                 MessageHandler(Filters.text, spiel_eintragen_ergebnisteam1)],
             EINSTELLUNGEN_WAEHLEN: [
                 MessageHandler(Filters.regex('^(Team einstellen)$'), einstellungen_team_aendern)], # TODO refactor 'Team einstellen' into variable
+            EINSTELLUNGEN_TEAM_VERIFIZIEREN: [
+                MessageHandler(Filters.text, einstellungen_team_verifizieren)],
             EINSTELLUNGEN_TEAM_SPEICHERN: [
-                MessageHandler(Filters.text, einstellungen_team_speichern)] # TODO refactor 'Team einstellen' into variable
+                MessageHandler(Filters.text, einstellungen_team_speichern)]
         },
         fallbacks=[MessageHandler(Filters.regex('^Abbrechen$'), abbrechen)],
         name="home_conversation",
