@@ -18,6 +18,7 @@ import math
 
 from telegram import (
     Update,
+    Sticker,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove
 )
@@ -152,13 +153,27 @@ def einstellungen_team_speichern(update: Update, context: CallbackContext) -> in
     team_name = context.chat_data['chosen_team_name']
     for team in possible_teams:
         if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
-            context.user_data['team_id'] = int(team['id'])
-            break
+            team_id = int(team['id'])
+    
+    # answer_api = requests.get('https://blankiball.de/api/team/check_password.php?id=' + str(team_id) + '?pw=' + update.message.text) # ask if password is right for this team
+    # password_is_right = json.loads(answer_api.text)['records']
+    password_is_right = False
+
+    
+    if password_is_right:
+        context.user_data['team_id'] = team_id
+        update.message.reply_text('Passwort stimmt ✅')
+        update.message.reply_text('Nice! Jetzt weiß ich dass du zum Team "' + team_name + '" gehörst 👌')
+        update.message.reply_text('Ich kann dir jetzt bei noch mehr Sachen helfen, unter anderem kann ich für dich Spielergebnisse eintragen und dir euren Spielplan zeigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    else:
+        update.message.reply_text('Das Passwort ist nicht richtig 🙁')
+        update.message.reply_text('Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
+        update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbqxrxn5P7Y7oUyyaLMoJhK8AALGAAMfAUwVj1Fqci01g7gfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # telegram file_id of sad macron sticker
+        
     del(context.chat_data['einstellungen_possible_teams'])
     del(context.chat_data['chosen_team_kuerzel'])
     del(context.chat_data['chosen_team_name'])
 
-    update.message.reply_text('Nice! Jetzt weiß ich dass du zum Team "' + team_name + '" gehörst 👌', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME_WAEHLEN
 
 def abbrechen(update: Update, context: CallbackContext) -> int:
