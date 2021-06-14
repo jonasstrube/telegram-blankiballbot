@@ -50,10 +50,22 @@ logger = logging.getLogger(__name__)
 
 HOME_WAEHLEN, SPIEL_EINTRAGEN_TEAMAUSWAEHLEN, EINSTELLUNGEN_WAEHLEN, EINSTELLUNGEN_TEAM_VERIFIZIEREN, EINSTELLUNGEN_TEAM_SPEICHERN = range(5)
 
+keyboard_main_spiel_eintragen = 'Spiel eintragen'
+keyboard_main_spielplan_anzeigen = 'Spielplan anzeigen'
+keyboard_main_organisation = 'Organisation'
+keyboard_main_infos = 'Infos'
+keyboard_main_faq = 'FAQ'
+keyboard_main_about = 'About'
+keyboard_main_settings = 'Settings'
 keyboard_main = [
-    ['Spiel eintragen', 'Spielplan anzeigen'],
-    ['Organisation', 'Infos'],
-    ['FAQ', 'About', 'Settings']
+    [keyboard_main_spiel_eintragen, keyboard_main_spielplan_anzeigen],
+    [keyboard_main_organisation, keyboard_main_infos],
+    [keyboard_main_faq, keyboard_main_about, keyboard_main_settings]
+]
+
+keyboard_einstellungen_team_einstellen = "Team einstellen"
+keyboard_einstellungen = [
+    [keyboard_einstellungen_team_einstellen]
 ]
 
 # ---------------------------------------------
@@ -147,8 +159,6 @@ def einstellungen_team_verifizieren(update: Update, context: CallbackContext) ->
 
 def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #after state EINSTELLUNGEN_TEAM_SPEICHERN
 
-    # TODO check if passwort is right
-
     possible_teams = context.chat_data['einstellungen_possible_teams']
     team_kuerzel = context.chat_data['chosen_team_kuerzel']
     team_name = context.chat_data['chosen_team_name']
@@ -196,14 +206,13 @@ def main():
         entry_points=[CommandHandler('start', start)],
         states={
             HOME_WAEHLEN: [
-                # TODO refactor main keyboard so that it also receives the values from variables. Then, the filters here can get the menu points from the unique variables rather than from the changeable keyboard array
-                MessageHandler(Filters.regex('^(' +  keyboard_main[0][0] +')$'), spiel_eintragen),
-                MessageHandler(Filters.regex('^(' +  keyboard_main[2][2] +')$'), einstellungen_waehlen)
+                MessageHandler(Filters.regex('^(' +  keyboard_main_spiel_eintragen +')$'), spiel_eintragen),
+                MessageHandler(Filters.regex('^(' +  keyboard_main_settings +')$'), einstellungen_waehlen)
                 ],
             SPIEL_EINTRAGEN_TEAMAUSWAEHLEN: [
                 MessageHandler(Filters.text, spiel_eintragen_ergebnisteam1)],
             EINSTELLUNGEN_WAEHLEN: [
-                MessageHandler(Filters.regex('^(Team einstellen)$'), einstellungen_team_aendern)], # TODO refactor 'Team einstellen' into variable
+                MessageHandler(Filters.regex('^(' + keyboard_einstellungen_team_einstellen + ')$'), einstellungen_team_aendern)],
             EINSTELLUNGEN_TEAM_VERIFIZIEREN: [
                 MessageHandler(Filters.text, einstellungen_team_verifizieren)],
             EINSTELLUNGEN_TEAM_SPEICHERN: [
