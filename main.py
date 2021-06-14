@@ -141,7 +141,8 @@ def einstellungen_team_verifizieren(update: Update, context: CallbackContext) ->
     context.chat_data['chosen_team_kuerzel'] =  team_kuerzel
     context.chat_data['chosen_team_name'] =  team_name
     
-    update.message.reply_text('Wie ist das Passwort eures Teams? \n\n (hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)', reply_markup=ReplyKeyboardRemove())
+    update.message.reply_text('Wie ist das Passwort eures Teams?)', reply_markup=ReplyKeyboardRemove())
+    update.message.reply_text('(hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)')
     return EINSTELLUNGEN_TEAM_SPEICHERN
 
 def einstellungen_team_speichern(update: Update, context: CallbackContext) -> int: #after state EINSTELLUNGEN_TEAM_SPEICHERN
@@ -155,16 +156,16 @@ def einstellungen_team_speichern(update: Update, context: CallbackContext) -> in
         if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
             team_id = int(team['id'])
     
-    # answer_api = requests.get('https://blankiball.de/api/team/check_password.php?id=' + str(team_id) + '?pw=' + update.message.text) # ask if password is right for this team
-    # password_is_right = json.loads(answer_api.text)['records']
-    password_is_right = False
+    request_string = 'https://blankiball.de/api/team/check_password.php?id=' + str(team_id) + '&pw=' + update.message.text
+    answer_api = requests.get(request_string) # ask if password is right for this team
+    password_is_right = json.loads(answer_api.text)['is_valid']
 
     
     if password_is_right:
         context.user_data['team_id'] = team_id
         update.message.reply_text('Passwort stimmt ✅')
-        update.message.reply_text('Nice! Jetzt weiß ich dass du zum Team "' + team_name + '" gehörst 👌')
-        update.message.reply_text('Ich kann dir jetzt bei noch mehr Sachen helfen, unter anderem kann ich für dich Spielergebnisse eintragen und dir euren Spielplan zeigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Nice! Du gehörst also zum Team "' + team_name + '" 👌')
+        update.message.reply_text('Jetzt kann ich auch deine Spielergebnisse eintragen oder dir deinen Spielplan zeigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁')
         update.message.reply_text('Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
