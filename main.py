@@ -144,7 +144,8 @@ def einstellungen__team_aendern__moegliche_teams_zeigen(update: Update, context:
 def einstellungen__team_aendern__team_verifizieren(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN
       
     # retrieve the team name and kuerzel from the user message
-    answer_string =  update.message.text
+    answer_string = update.message.text
+
     answer_string_split = answer_string.split()
     team_kuerzel_with_brackets = answer_string_split[-1]
     team_name_split = answer_string_split[:-1]  
@@ -172,8 +173,10 @@ def einstellungen__team_aendern__team_verifizieren(update: Update, context: Call
 def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
 
     chosen_team = context.chat_data['temp_einstellungen_team_aendern_chosen_team']
+    password = update.message.text
+    update.message.delete()
     
-    request_string = 'https://blankiball.de/api/team/check_password.php?id=' + str(chosen_team['id']) + '&pw=' + update.message.text
+    request_string = 'https://blankiball.de/api/team/check_password.php?id=' + str(chosen_team['id']) + '&pw=' + password
     answer_api = requests.get(request_string) # ask if password is right for this team
     password_is_right = json.loads(answer_api.text)['is_valid']
 
