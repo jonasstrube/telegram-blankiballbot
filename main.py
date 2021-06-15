@@ -144,48 +144,50 @@ def einstellungen__team_aendern__moegliche_teams_zeigen(update: Update, context:
 def einstellungen__team_aendern__team_verifizieren(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN
       
     # retrieve the team name and kuerzel from the user message
-    # TODO check if user gave a possible input. if not, go back to main menu
-    team_string =  update.message.text
-    team_string_split = team_string.split()
-    team_kuerzel_with_brackets = team_string_split[-1]
-    team_name_split = team_string_split[:-1]  
+    answer_string =  update.message.text
+    answer_string_split = answer_string.split()
+    team_kuerzel_with_brackets = answer_string_split[-1]
+    team_name_split = answer_string_split[:-1]  
     team_kuerzel = team_kuerzel_with_brackets[1:-1]
     team_name = " ".join(team_name_split)
-    # save team name and kuerzel to the chat data, so that we can use them in next dialog function
-    context.chat_data['chosen_team_kuerzel'] =  team_kuerzel
-    context.chat_data['chosen_team_name'] =  team_name
-    
-    update.message.reply_text('Wie ist das Passwort eures Teams?)', reply_markup=ReplyKeyboardRemove())
-    update.message.reply_text('(hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)')
-    return EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
 
-def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
-
+    # get the team with the fitting kuerzel and name
+    chosen_team = None
     possible_teams = context.chat_data['einstellungen_possible_teams']
-    team_kuerzel = context.chat_data['chosen_team_kuerzel']
-    team_name = context.chat_data['chosen_team_name']
     for team in possible_teams:
         if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
-            team_id = int(team['id'])
+            chosen_team = team
+            break
+
+    if chosen_team:
+        context.chat_data['temp_einstellungen_team_aendern_chosen_team'] = chosen_team
+        update.message.reply_text('Wie ist das Passwort eures Teams?)', reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text('(hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)')
+        return EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
+    else:
+        update.message.reply_text('Gibt kein Team das so heißt wie das was du da eingegeben hast')
+        update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbrUtdyHyl-SyKqCsVkmOuNPAALJAAMfAUwVjsN8pui5_AwfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # annoyed macron sticker
+        return HOME
+        
+def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
+
+    chosen_team = context.chat_data['temp_einstellungen_team_aendern_chosen_team']
     
-    request_string = 'https://blankiball.de/api/team/check_password.php?id=' + str(team_id) + '&pw=' + update.message.text
+    request_string = 'https://blankiball.de/api/team/check_password.php?id=' + str(chosen_team['id']) + '&pw=' + update.message.text
     answer_api = requests.get(request_string) # ask if password is right for this team
     password_is_right = json.loads(answer_api.text)['is_valid']
 
-    
     if password_is_right:
-        context.user_data['team_id'] = team_id
+        context.user_data['team_id'] = chosen_team['id']
         update.message.reply_text('Passwort stimmt ✅')
-        update.message.reply_text('Nice! Du gehörst also zum Team "' + team_name + '" 👌')
+        update.message.reply_text('Nice! Du gehörst also zum Team "' + chosen_team['name'] + '" 👌')
         update.message.reply_text('Jetzt kann ich auch deine Spielergebnisse eintragen oder dir deinen Spielplan zeigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁')
         update.message.reply_text('Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
-        update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbqxrxn5P7Y7oUyyaLMoJhK8AALGAAMfAUwVj1Fqci01g7gfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # telegram file_id of sad macron sticker
+        update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbqxrxn5P7Y7oUyyaLMoJhK8AALGAAMfAUwVj1Fqci01g7gfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # sad macron sticker
         
-    del(context.chat_data['einstellungen_possible_teams'])
-    del(context.chat_data['chosen_team_kuerzel'])
-    del(context.chat_data['chosen_team_name'])
+    del(context.chat_data['temp_einstellungen_team_aendern_chosen_team'])
 
     return HOME
 
