@@ -66,9 +66,10 @@ keyboard_main = [
 
 keyboard_main_teaser_how_long = 'Wann geht das Turnier endlich los? 😍'
 keyboard_main_teaser_HOW_LONG = 'WIE LANGE NOCH? 😡'
+keyboard_main_teaser_features = 'Kannst du eigentlich auch mehr? 🤔'
 keyboard_main_teaser = [
-    [keyboard_main_teaser_how_long], 
-    [keyboard_main_teaser_HOW_LONG]
+    [keyboard_main_teaser_how_long, keyboard_main_teaser_HOW_LONG], 
+    [keyboard_main_teaser_features]
 ]
 
 keyboard_einstellungen_team_einstellen = "Team einstellen"
@@ -232,6 +233,10 @@ def zeit_angeschrien(update: Update, context: CallbackContext) -> int: # after s
     update.message.reply_text(answer_string, reply_markup=ReplyKeyboardMarkup(keyboard_main_teaser))
     return HOME
 
+def mehr_features(update: Update, context: CallbackContext) -> int: # after state HOME
+    update.message.reply_text("Jo das ist noch längst nicht alles. Aber ich bin noch nicht fertig eingewiesen, deswegen kannst du mich bis jetzt nur nach der Zeit bis zum Turnier fragen. 🤷‍♂️\n\nSpäter kann ich für dich Turnierergebnisse eintragen 📝, ich kann dir deinen Spielplan schicken 🗓, du kannst mich nach den Turnierregeln fragen 🚷 und vieles mehr. Bis dahin dauerts aber noch ein bisschen. Hold tight!", reply_markup=ReplyKeyboardMarkup(keyboard_main_teaser))
+    return HOME
+
 def abbrechen(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Jo, nix passiert", reply_markup = ReplyKeyboardMarkup(keyboard_main_teaser))
     return HOME
@@ -254,7 +259,8 @@ def main():
                 MessageHandler(Filters.regex('^(' +  keyboard_main_spiel_eintragen +')$'), spiel_eintragen),
                 MessageHandler(Filters.regex('^(' +  keyboard_main_settings +')$'), einstellungen_zeigen),
                 MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_how_long.replace('?', '\?') +')$'), zeit_normal),
-                MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_HOW_LONG.replace('?', '\?') +')$'), zeit_angeschrien)
+                MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_HOW_LONG.replace('?', '\?') +')$'), zeit_angeschrien),
+                MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_features.replace('?', '\?') +')$'), mehr_features)
                 ],
             SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN: [
                 MessageHandler(Filters.text, spiel_eintragen__ergebnis_erfragen_team1)],
