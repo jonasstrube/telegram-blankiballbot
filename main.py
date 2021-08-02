@@ -97,7 +97,7 @@ def start(update: Update, context: CallbackContext) -> int: # after state HOME
     update.message.reply_text("Hi! Schön dass du da bist", reply_markup = ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
-def spiel_eintragen(update: Update, context: CallbackContext) -> int:
+def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after state HOME
     team_id = context.user_data.get('team_id')
 
     if team_id:
@@ -156,7 +156,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
             #  - Turnier hat noch nicht begonnen
             #  - Turnier ist beendet
             #  - Es muss auf entscheidungsspiele bei anderen Teams gewartet werden, bis neue Spiele feststehen
-            update.message.reply_text('Ihr habt grad keine anstehenden Spiele\n\nMacht doch nen Freundschaftsspiel mit Richard aus, der hat so wenig Freunde ❤️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Ihr habt grad keine anstehenden Spiele\n\nMacht doch nen Freundschaftsspiel mit Richard aus, der hat so wenige Freunde ❤️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
     
     else:
@@ -208,7 +208,7 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
 
     return HOME
 
-def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME_WAEHLEN
+def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
     keyboard_answer =[['Team einstellen']]
     update.message.reply_text('Aye Aye! Was willst du einstellen?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
     return EINSTELLUNGEN
@@ -285,18 +285,12 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
     answer = json.loads(answer_api.text)['records']
     
     if not len(answer) == 0:
-        password_is_right = True
         chosen_team = answer[0] # if multiple teams have the same kuerzel and password, the first is chosen for the login
-    else:
-        password_is_right = False
-
-    if password_is_right:
         context.user_data['team_id'] = chosen_team['id']
-        update.message.reply_text('Passwort stimmt ✅\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Passwort stimmt ✅\n\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁 Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
         update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbqxrxn5P7Y7oUyyaLMoJhK8AALGAAMfAUwVj1Fqci01g7gfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # sad macron sticker
-
         
     del(context.chat_data['temp_einstellungen_team_aendern_chosen_team_kuerzel'])
 
