@@ -88,13 +88,33 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
     team_id = context.user_data.get('team_id')
 
     if team_id:
-        answer_api = requests.get('https://blankiball.de/api/team/read_opponents.php?id=' + str(team_id)) # get all possible opponents of the team of the user
+        answer_api = requests.get('https://blankiball.de/api/begegnung/read.php?team_id=' + str(team_id)) # get all Begegnungen of the Team of the User
 
-        # TODO check the http code instead of the message, when the api returns 404 correctly
-        if('records' in json.loads(answer_api.text)): # check if api returned error 
+        begegnungen_all = json.loads(answer_api.text)['records']
+        
+        # remove begegnungen that are not aktiv anymore (abgeschlossen, veraltet etc)
+        begegnungen = []
+        for begegnung in begegnungen_all:
+            if begegnung['status'] == '1': # status 1 = aktiv
+                begegnungen.append(begegnung)
+
+        if (begegnungen): # check if api returned entries
+
+            context.chat_data['temp_spiel_eintragen__possible_begegnungen'] = begegnungen
+
+            # get all enemy team ids
+            possible_opponent_team_ids = []
+            for begegnung in begegnungen:
+                if not begegnung['fk_heimteam'] == team_id:
+                    possible_opponent_team_ids.append(begegnung['fk_heimteam'])
+                elif not begegnung['fk_auswaertsteam'] == team_id:
+                    possible_opponent_team_ids.append(begegnung['fk_auswaertsteam'])
+                    
+            body_json = {"team_ids" : possible_opponent_team_ids}
+            answer_api = requests.get('https://blankiball.de/api/team/read.php', json=body_json) # get all Begegnungen of the Users Team
             possible_opponent_teams = json.loads(answer_api.text)['records']
 
-            # TODO save enemy teams as well as ausstehende begegnungen in chat_data
+            context.chat_data['temp_spiel_eintragen__possible_opponent_teams'] = possible_opponent_teams
 
             # iterate through all possible opponent teams and distribute them through the keyboard (1: [1], 2: [1, 2], 3: [1, 2][3], 4: [1, 2][3, 4], 5: [1, 2, 3][4, 5], 6: [1, 2, 3][4, 5, 6], etc)
             keyboard_answer = []
@@ -115,9 +135,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
                     single_row_content.append(current_team['name'] + " (" + current_team['kuerzel'] + ")")
                 keyboard_answer.append(single_row_content)
 
-            # TODO ihr seid grad in der Gruppenphase, gegen welches dieser Teams habt ihr gespielt?
             update.message.reply_text('Gegen welches Team habt ihr gespielt?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
-            context.chat_data['temp_spiel_eintragen__possible_opponent_teams'] = possible_opponent_teams
             return SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN
         
         else:
@@ -125,7 +143,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
             #  - Turnier hat noch nicht begonnen
             #  - Turnier ist beendet
             #  - Es muss auf entscheidungsspiele bei anderen Teams gewartet werden, bis neue Spiele feststehen
-            update.message.reply_text('Ihr habt grad keine ausstehenden Spiele\n\nMacht doch nen Freundschaftsspiel aus, andere haben bestimmt auch grad Zeit ❤️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Ihr habt grad keine anstehenden Spiele\n\nMacht doch nen Freundschaftsspiel mit Richard aus, der hat so wenig Freunde ❤️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
     
     else:
@@ -151,9 +169,19 @@ def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackCo
             opponent_team = team
             break
 
-    context.chat_data['temp_spiel_eintragen__enemy_team'] = opponent_team #TODO delete data after dialog
+    possible_begegnungen = context.chat_data['temp_spiel_eintragen__possible_begegnungen']
+
+    chosen_begegnung = None
+    for begegnung in possible_begegnungen:
+        if begegnung['fk_heimteam'] == opponent_team['id'] or begegnung['fk_auswaertsteam'] == opponent_team['id']:
+            chosen_begegnung = begegnung
+            break
+
+    context.chat_data['temp_spiel_eintragen__enemy_team'] = opponent_team #TODO delete after use
+    context.chat_data['temp_spiel_eintragen__begegnung'] = chosen_begegnung #TODO delete after use
     del(context.chat_data['temp_spiel_eintragen__possible_opponent_teams'])
-    
+    del(context.chat_data['temp_spiel_eintragen__possible_begegnungen'])
+
     update.message.reply_text('Wie viele Flaschen habt ihr ausgetrunken? (Strafbiere zählen nicht)', reply_markup=ReplyKeyboardMarkup(keyboard_biere_ergebnis))
     return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1
 
