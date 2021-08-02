@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 # --------------- global vars ----------------
 
-HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_ERFRAGEN_TEAM1, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(6)
+HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(6)
 
 keyboard_main_spiel_eintragen = 'Spiel eintragen'
 keyboard_main_spielplan_anzeigen = 'Spielplan anzeigen'
@@ -66,6 +66,11 @@ keyboard_main = [
 keyboard_einstellungen_team_einstellen = "Team einstellen"
 keyboard_einstellungen = [
     [keyboard_einstellungen_team_einstellen]
+]
+
+keyboard_biere_ergebnis = [
+    [0, 1],
+    [2, 3]
 ]
 
 # ---------------------------------------------
@@ -88,6 +93,8 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
         # TODO check the http code instead of the message, when the api returns 404 correctly
         if('records' in json.loads(answer_api.text)): # check if api returned error 
             possible_opponent_teams = json.loads(answer_api.text)['records']
+
+            # TODO save enemy teams as well as ausstehende begegnungen in chat_data
 
             # iterate through all possible opponent teams and distribute them through the keyboard (1: [1], 2: [1, 2], 3: [1, 2][3], 4: [1, 2][3, 4], 5: [1, 2, 3][4, 5], 6: [1, 2, 3][4, 5, 6], etc)
             keyboard_answer = []
@@ -114,7 +121,11 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int:
             return SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN
         
         else:
-            # TODO answer when no enemy teams found (cause: tournament over, tournament didnt start yet)
+            # TODO Verschiedene Antworten, je nach Zustand des Teams im Turnier 
+            #  - Turnier hat noch nicht begonnen
+            #  - Turnier ist beendet
+            #  - Es muss auf entscheidungsspiele bei anderen Teams gewartet werden, bis neue Spiele feststehen
+            update.message.reply_text('Ihr habt grad keine ausstehenden Spiele\n\nMacht doch nen Freundschaftsspiel aus, andere haben bestimmt auch grad Zeit ❤️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
     
     else:
@@ -143,7 +154,16 @@ def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackCo
     context.chat_data['temp_spiel_eintragen__enemy_team'] = opponent_team #TODO delete data after dialog
     del(context.chat_data['temp_spiel_eintragen__possible_opponent_teams'])
     
-    update.message.reply_text('Wie viele Flaschen habt ihr ausgetrunken? (Strafbiere zählen nicht)', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    update.message.reply_text('Wie viele Flaschen habt ihr ausgetrunken? (Strafbiere zählen nicht)', reply_markup=ReplyKeyboardMarkup(keyboard_biere_ergebnis))
+    return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1
+
+def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1
+    
+    answer_string = update.message.text
+    # TODO Biere des*r Eintragenden in biereheimteam / biereauswaertsteam eintragen (welches Team seins*ihrs ist, muss man herausfinden anhand der ids in Begegnung die in chat_data gespeichert ist (fk_heimteam, fk_auswaertsteam)) 
+    
+    # TODO get bottles that the second team managed to drink
+    update.message.reply_text('-- Dialog beendet --', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME_WAEHLEN
@@ -263,6 +283,8 @@ def main():
                 ],
             SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN: [
                 MessageHandler(Filters.text, spiel_eintragen__ergebnis_erfragen_team1)],
+            SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1: [
+                MessageHandler(Filters.text, spiel_eintragen__ergebnis_erfragen_team2)],
             EINSTELLUNGEN: [
                 MessageHandler(Filters.regex('^(' + keyboard_einstellungen_team_einstellen + ')$'), einstellungen__team_aendern__moegliche_teams_zeigen)],
             EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN: [
