@@ -147,23 +147,36 @@ def einstellungen__team_aendern__team_verifizieren(update: Update, context: Call
     answer_string = update.message.text
 
     answer_string_split = answer_string.split()
-    team_kuerzel_with_brackets = answer_string_split[-1]
-    team_name_split = answer_string_split[:-1]  
-    team_kuerzel = team_kuerzel_with_brackets[1:-1]
-    team_name = " ".join(team_name_split)
+
+    if (answer_string_split[0] == 'hexhex' and len(answer_string_split) == 2 and not answer_string_split[1][0] == '('): # for example "hexhex JBG" (kuerzel darf nicht mit ( beginnen!!))
+        admin_mode = True
+        team_kuerzel = answer_string_split[1]
+        answer_api = requests.get('https://blankiball.de/api/team/read.php') # get ALL possible teams, even the ones that are not in the current tournament (for example in test tournaments)
+        possible_teams = json.loads(answer_api.text)['records']
+    else:
+        admin_mode = False
+        team_kuerzel_with_brackets = answer_string_split[-1]
+        team_name_split = answer_string_split[:-1]  
+        team_kuerzel = team_kuerzel_with_brackets[1:-1]
+        team_name = " ".join(team_name_split)
+        possible_teams = context.chat_data['einstellungen_possible_teams']
 
     # get the team with the fitting kuerzel and name
     chosen_team = None
-    possible_teams = context.chat_data['einstellungen_possible_teams']
-    for team in possible_teams:
-        if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
-            chosen_team = team
-            break
+    if(not admin_mode):
+        for team in possible_teams:
+            if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
+                chosen_team = team
+                break
+    else:
+        for team in possible_teams:
+            if team['kuerzel'] == team_kuerzel: # in admin mode the user didnt give a team name, we only compare the kuerzel
+                chosen_team = team
+                break
 
     if chosen_team:
-        context.chat_data['temp_einstellungen_team_aendern_chosen_team'] = chosen_team
-        update.message.reply_text('Wie ist das Passwort eures Teams?)', reply_markup=ReplyKeyboardRemove())
-        update.message.reply_text('(hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)')
+        context.chat_data['temp_einstellungen_team_aendern_chosen_team_kuerzel'] = chosen_team['kuerzel']
+        update.message.reply_text('Wie ist das Passwort eures Teams?\n\n(hab ich deinem Teamkapitän bei eurer Anmeldung zugeschickt)', reply_markup=ReplyKeyboardRemove())
         return EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
     else:
         update.message.reply_text('Gibt kein Team das so heißt wie das was du da eingegeben hast')
@@ -172,25 +185,28 @@ def einstellungen__team_aendern__team_verifizieren(update: Update, context: Call
         
 def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN
 
-    chosen_team = context.chat_data['temp_einstellungen_team_aendern_chosen_team']
+    chosen_team_kuerzel = context.chat_data['temp_einstellungen_team_aendern_chosen_team_kuerzel']
     password = update.message.text
     update.message.delete()
     
-    request_string = 'https://blankiball.de/api/team/check_password.php?id=' + str(chosen_team['id']) + '&pw=' + password
+    request_string = 'https://blankiball.de/api/team/check_password.php?kuerzel=' + str(chosen_team_kuerzel) + '&pw=' + password
     answer_api = requests.get(request_string) # ask if password is right for this team
-    password_is_right = json.loads(answer_api.text)['is_valid']
+    answer = json.loads(answer_api.text)['records']
+    
+    if not len(answer) == 0:
+        password_is_right = True
+        chosen_team = answer[0] # if multiple teams have the same kuerzel and password, the first is chosen for the login
+    else:
+        password_is_right = False
 
     if password_is_right:
         context.user_data['team_id'] = chosen_team['id']
-        update.message.reply_text('Passwort stimmt ✅')
-        update.message.reply_text('Nice! Du gehörst also zum Team "' + chosen_team['name'] + '" 👌')
-        update.message.reply_text('Jetzt kann ich auch deine Spielergebnisse eintragen oder dir deinen Spielplan zeigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Passwort stimmt ✅\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
-        update.message.reply_text('Das Passwort ist nicht richtig 🙁')
-        update.message.reply_text('Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
+        update.message.reply_text('Das Passwort ist nicht richtig 🙁 Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
         update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbqxrxn5P7Y7oUyyaLMoJhK8AALGAAMfAUwVj1Fqci01g7gfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # sad macron sticker
         
-    del(context.chat_data['temp_einstellungen_team_aendern_chosen_team'])
+    del(context.chat_data['temp_einstellungen_team_aendern_chosen_team_kuerzel'])
 
     return HOME
 
