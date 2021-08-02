@@ -10,7 +10,8 @@
 import logging
 import os
 from datetime import (
-    datetime
+    datetime,
+    timedelta
 )
 import requests
 import json
@@ -50,6 +51,14 @@ logger = logging.getLogger(__name__)
 
 HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(6)
 
+keyboard_main_teaser_how_long = 'Wann geht das Turnier endlich los? 😍'
+keyboard_main_teaser_HOW_LONG = 'WIE LANGE NOCH? 😡'
+keyboard_main_teaser_features = 'Kannst du eigentlich auch mehr? 🤔'
+keyboard_main_teaser = [
+    [keyboard_main_teaser_how_long, keyboard_main_teaser_HOW_LONG], 
+    [keyboard_main_teaser_features]
+]
+
 keyboard_main_spiel_eintragen = 'Spiel eintragen'
 keyboard_main_spielplan_anzeigen = 'Spielplan anzeigen'
 keyboard_main_organisation = 'Organisation'
@@ -62,6 +71,10 @@ keyboard_main = [
     [keyboard_main_organisation, keyboard_main_infos],
     [keyboard_main_faq, keyboard_main_about, keyboard_main_settings]
 ]
+
+# TODO delete for go live of bot
+keyboard_main = keyboard_main_teaser
+
 
 keyboard_einstellungen_team_einstellen = "Team einstellen"
 keyboard_einstellungen = [
@@ -192,6 +205,7 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
     
     # TODO get bottles that the second team managed to drink
     update.message.reply_text('-- Dialog beendet --', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+
     return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME_WAEHLEN
@@ -282,9 +296,40 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁 Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
         update.message.reply_sticker(sticker="CAACAgIAAxUAAWDHVbqxrxn5P7Y7oUyyaLMoJhK8AALGAAMfAUwVj1Fqci01g7gfBA", reply_markup=ReplyKeyboardMarkup(keyboard_main)) # sad macron sticker
+
         
     del(context.chat_data['temp_einstellungen_team_aendern_chosen_team_kuerzel'])
 
+    return HOME
+
+def zeit_normal(update: Update, context: CallbackContext) -> int: # after state HOME
+    time_until_tournament = datetime(2021, 9, 6, 14) - datetime.now()
+    hours, remainder = divmod(time_until_tournament.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    days_string = 'Tage' if time_until_tournament.days != 1 else 'Tag'
+    hours_string = 'Stunden' if hours != 1 else 'Stunde'  
+    minutes_string = 'Minuten' if minutes != 1 else 'Minute'  
+    seconds_string = 'Sekunden' if seconds != 1 else 'Sekunde'
+    answer_string = 'Noch ' + str(time_until_tournament.days) + ' ' + days_string + ', ' + str(hours) + ' ' + hours_string + ', ' + str(minutes) + ' ' + minutes_string + ' und ' + str(seconds) + ' ' + seconds_string + ' durchhalten! Du schaffst das!'
+    update.message.reply_text(answer_string, reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    return HOME
+
+def zeit_angeschrien(update: Update, context: CallbackContext) -> int: # after state HOME
+    time_until_tournament = datetime(2021, 9, 6, 14) - datetime.now()
+    hours, remainder = divmod(time_until_tournament.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    days_string = 'Tage' if time_until_tournament.days != 1 else 'Tag'
+    hours_string = 'Stunden' if hours != 1 else 'Stunde'  
+    minutes_string = 'Minuten' if minutes != 1 else 'Minute'  
+    seconds_string = 'Sekunden' if seconds != 1 else 'Sekunde'
+    answer_string = 'Noch ' + str(time_until_tournament.days) + ' ' + days_string + ', ' + str(hours) + ' ' + hours_string + ', ' + str(minutes) + ' ' + minutes_string + ' und ' + str(seconds) + ' ' + seconds_string + ' bis ich deine FRESSE POLIERE'
+    
+    update.message.reply_text('SCHREI MICH NICHT AN!')
+    update.message.reply_text(answer_string, reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    return HOME
+
+def mehr_features(update: Update, context: CallbackContext) -> int: # after state HOME
+    update.message.reply_text("Jo das ist noch längst nicht alles. Aber ich bin noch nicht fertig eingewiesen, deswegen kannst du mich bis jetzt nur nach der Zeit bis zum Turnier fragen. 🤷‍♂️\n\nSpäter kann ich für dich Turnierergebnisse eintragen 📝, ich kann dir deinen Spielplan schicken 🗓, du kannst mich nach den Turnierregeln fragen 🚷 und vieles mehr. Bis dahin dauerts aber noch ein bisschen. Hold tight!", reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
 def abbrechen(update: Update, context: CallbackContext) -> int:
@@ -307,7 +352,10 @@ def main():
         states={
             HOME: [
                 MessageHandler(Filters.regex('^(' +  keyboard_main_spiel_eintragen +')$'), spiel_eintragen),
-                MessageHandler(Filters.regex('^(' +  keyboard_main_settings +')$'), einstellungen_zeigen)
+                MessageHandler(Filters.regex('^(' +  keyboard_main_settings +')$'), einstellungen_zeigen),
+                MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_how_long.replace('?', '\?') +')$'), zeit_normal),
+                MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_HOW_LONG.replace('?', '\?') +')$'), zeit_angeschrien),
+                MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_features.replace('?', '\?') +')$'), mehr_features)
                 ],
             SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN: [
                 MessageHandler(Filters.text, spiel_eintragen__ergebnis_erfragen_team1)],
