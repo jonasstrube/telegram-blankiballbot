@@ -124,7 +124,7 @@ def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # aft
     return EINSTELLUNGEN
 
 def einstellungen__team_aendern__moegliche_teams_zeigen(update: Update, context: CallbackContext) -> int: # after state EINSTELLUNGEN
-    answer_api = requests.get('https://blankiball.de/api/team/read.php') # get all possible teams the user could be in
+    answer_api = requests.get('https://blankiball.de/api/team/read.php?current_tournament=true') # get all possible teams the user could be in
     possible_teams = json.loads(answer_api.text)['records']
     
     #  TODO refactor for more efficiency
