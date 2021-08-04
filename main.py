@@ -99,8 +99,9 @@ def start(update: Update, context: CallbackContext) -> int: # after state HOME
 
 def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after state HOME
     team_id = context.user_data.get('team_id')
+    team_kuerzel = context.user_data.get('team_kuerzel')
 
-    if team_id:
+    if team_id and team_kuerzel:
         answer_api = requests.get('https://blankiball.de/api/begegnung/read.php?team_id=' + str(team_id)) # get all Begegnungen of the Team of the User
 
         begegnungen_all = json.loads(answer_api.text)['records']
@@ -160,9 +161,14 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after st
             return HOME
     
     else:
-        # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
-        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du mir das schreiben', reply_markup=ReplyKeyboardMarkup(keyboard_main))
-        return HOME
+        if team_id and not team_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
+            update.message.reply_text('Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
+            pass
+        else: 
+            # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+            update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du deine Identität bestätigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
 
 def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN
     
@@ -288,6 +294,7 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
     if not len(answer) == 0:
         chosen_team = answer[0] # if multiple teams have the same kuerzel and password, the first is chosen for the login
         context.user_data['team_id'] = chosen_team['id']
+        context.user_data['team_kuerzel'] = chosen_team['kuerzel']
         update.message.reply_text('Passwort stimmt ✅\n\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁 Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
