@@ -10,6 +10,7 @@
 import logging
 import os
 from datetime import (
+    date,
     datetime,
     timedelta
 )
@@ -40,6 +41,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ---------------- classes -------------------
+
+class Spiel:
+
+    def __init__(self, id: int, timestamp: str, fk_begegnung: int, biereheimteam: int, biereauswaertsteam: int, austragungsdatum: date, who_inserted_or_updated_last: str) -> None:
+        self.id = id
+        self.timestamp = timestamp
+        self.fk_begegnung = fk_begegnung
+        self.biereheimteam = biereheimteam
+        self.biereauswaertsteam = biereauswaertsteam
+        self.austragungsdatum = austragungsdatum
+        self.who_inserted_or_updated_last = who_inserted_or_updated_last
 
 # --------------------------------------------
 
