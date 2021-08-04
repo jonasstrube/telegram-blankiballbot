@@ -444,6 +444,11 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
         chosen_team = answer[0] # if multiple teams have the same kuerzel and password, the first is chosen for the login
         context.chat_data['team_id'] = chosen_team['id']
         context.chat_data['team_kuerzel'] = chosen_team['kuerzel']
+
+        # delete data from legacy users that logged in when team data was stored in user_data
+        del(context.user_data['team_id'])
+        del(context.user_data['team_kuerzel'])
+        
         update.message.reply_text('Passwort stimmt ✅\n\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁 Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
