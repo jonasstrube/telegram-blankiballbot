@@ -308,7 +308,7 @@ def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackCo
     update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(keyboard_everything_correct))
     return SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
 
-def spiel_eintragen__spiel_final_abschicken(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
+def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
     answer_string = update.message.text
     update.message.reply_text("-- Dialog beendet --", reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
@@ -465,7 +465,7 @@ def main():
             SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2: [
                 MessageHandler(Filters.text, spiel_eintragen__auf_richtigkeit_pruefen)],
             SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN: [
-                MessageHandler(Filters.text, spiel_eintragen__spiel_final_abschicken)],
+                MessageHandler(Filters.text, spiel_eintragen__spiel_final_speichern)],
             EINSTELLUNGEN: [
                 MessageHandler(Filters.regex('^(' + keyboard_einstellungen_team_einstellen + ')$'), einstellungen__team_aendern__moegliche_teams_zeigen)],
             EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN: [
