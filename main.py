@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 class Spiel:
 
-    def __init__(self, id: int, timestamp: str, fk_begegnung: int, biereheimteam: int, biereauswaertsteam: int, austragungsdatum: date, who_inserted_or_updated_last: str) -> None:
+    def __init__(self, id: int = 0, timestamp: str = None, fk_begegnung: int = None, biereheimteam: int = None, biereauswaertsteam: int = None, austragungsdatum: date = None, who_inserted_or_updated_last: str = None) -> None:
         self.id = id
         self.timestamp = timestamp
         self.fk_begegnung = fk_begegnung
