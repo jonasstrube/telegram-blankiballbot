@@ -114,8 +114,8 @@ def start(update: Update, context: CallbackContext) -> int: # after state HOME
     return HOME
 
 def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after state HOME
-    team_id = context.user_data.get('team_id')
-    team_kuerzel = context.user_data.get('team_kuerzel')
+    team_id = context.chat_data.get('team_id')
+    team_kuerzel = context.chat_data.get('team_kuerzel')
 
     if team_id and team_kuerzel:
         answer_api = requests.get('https://blankiball.de/api/begegnung/read.php?team_id=' + str(team_id)) # get all Begegnungen of the Team of the User
@@ -182,8 +182,6 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after st
             return HOME
             pass
         else: 
-            # TODO make a guess who he is based on his phone number. phone number can be compared to all phone numbers in database. API should get the phone number and client gets the user who the number belongs to
-            # for example: update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
             update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du deine Identität bestätigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
@@ -235,7 +233,7 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
         return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1
 
     current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
-    user_team_id = context.user_data.get('team_id')
+    user_team_id = context.chat_data.get('team_id')
     current_spiel: Spiel = context.chat_data.get('temp_spiel_eintragen__spiel')
     
     if current_begegenung['fk_heimteam'] == user_team_id:
@@ -271,7 +269,7 @@ def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackCo
         update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103824. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME    
 
-    user_team_id = context.user_data.get('team_id')
+    user_team_id = context.chat_data.get('team_id')
 
     # build string for question if everything is correct
 
@@ -313,7 +311,7 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
         opponent_team = context.chat_data.get('temp_spiel_eintragen__opponent_team')
         current_spiel: Spiel = context.chat_data.get('temp_spiel_eintragen__spiel')
-        user_team_kuerzel = context.user_data.get('team_kuerzel')
+        user_team_kuerzel = context.chat_data.get('team_kuerzel')
         user_telegram_username: str = update.message.from_user.username
         user_telegram_firstname: str = update.message.from_user.first_name
         
@@ -444,8 +442,8 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
     
     if not len(answer) == 0:
         chosen_team = answer[0] # if multiple teams have the same kuerzel and password, the first is chosen for the login
-        context.user_data['team_id'] = chosen_team['id']
-        context.user_data['team_kuerzel'] = chosen_team['kuerzel']
+        context.chat_data['team_id'] = chosen_team['id']
+        context.chat_data['team_kuerzel'] = chosen_team['kuerzel']
         update.message.reply_text('Passwort stimmt ✅\n\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
         update.message.reply_text('Das Passwort ist nicht richtig 🙁 Hast du dich vertippt? Oder hat dein Teamkapitän dich hops genommen?')
