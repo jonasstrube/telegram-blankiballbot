@@ -61,7 +61,7 @@ class Spiel:
 
 # --------------- global vars ----------------
 
-HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(7)
+HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2, SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(8)
 
 keyboard_main_teaser_how_long = 'Wann geht das Turnier endlich los? 😍'
 keyboard_main_teaser_HOW_LONG = 'WIE LANGE NOCH? 😡'
@@ -217,7 +217,7 @@ def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackCo
     #     return HOME
 
     current_spiel = Spiel()
-    context.chat_data['temp_spiel_eintragen__enemy_team'] = opponent_team #TODO delete after use
+    context.chat_data['temp_spiel_eintragen__opponent_team'] = opponent_team #TODO delete after use
     context.chat_data['temp_spiel_eintragen__begegnung'] = chosen_begegnung #TODO delete after use
     context.chat_data['temp_spiel_eintragen__spiel'] = current_spiel #TODO delete after use
     del(context.chat_data['temp_spiel_eintragen__possible_opponent_teams'])
@@ -253,7 +253,64 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
     return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2
 
 def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2
-    update.message.reply_text('-- Dialog beendet --', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    answer_string = update.message.text
+    try:
+        biere_gegnerinnenteam: int = int(answer_string) # exception when user gave no number
+        if biere_gegnerinnenteam < 0 or biere_gegnerinnenteam > 3:
+            raise Exception("beer value too low or high")
+    except:
+        update.message.reply_text('Du musst schon ne Zahl zwischen 0 und 3 eingeben. Alles andere kann ich in meine Akten nicht eintragen', reply_markup=ReplyKeyboardMarkup(keyboard_biere_ergebnis))
+        return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2
+
+    current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
+    opponent_team = context.chat_data.get('temp_spiel_eintragen__opponent_team')
+    current_spiel: Spiel = context.chat_data.get('temp_spiel_eintragen__spiel')
+    
+    if not current_spiel.biereheimteam and current_begegenung['fk_heimteam'] == opponent_team['id']:
+        current_spiel.biereheimteam = biere_gegnerinnenteam
+    elif not current_spiel.biereauswaertsteam and current_begegenung['fk_auswaertsteam'] == opponent_team['id']:
+        current_spiel.biereauswaertsteam = biere_gegnerinnenteam
+    else:
+        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103004. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME    
+
+    user_team_id = context.user_data.get('team_id')
+
+    # build string for question if everything is correct
+
+    # get beers of user team and opponent team
+    if user_team_id == current_begegenung['fk_heimteam'] and opponent_team['id'] == current_begegenung['fk_auswaertsteam']:
+        user_team_beers = current_spiel.biereheimteam
+        opponent_team_beers = current_spiel.biereauswaertsteam
+    elif user_team_id == current_begegenung['fk_auswaertsteam'] and opponent_team['id'] == current_begegenung['fk_heimteam']:
+        user_team_beers = current_spiel.biereauswaertsteam
+        opponent_team_beers = current_spiel.biereheimteam
+    else:
+        # TODO send error messages in central method with errorcode
+        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103005. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
+
+    # get opponent team name and kuerzel
+    opponent_team_name = opponent_team['name']
+    opponent_team_kuerzel = opponent_team['kuerzel']
+
+    # get verb to tell if the user team won or lost 
+    if user_team_beers > opponent_team_beers:
+        verb_lose_or_win = "gewonnen"
+    elif opponent_team_beers > user_team_beers:
+        verb_lose_or_win = "verloren"
+    elif opponent_team_beers == user_team_beers:
+        update.message.reply_text('Loide, Unentschieden gibts nicht bei Blankiball 🤦‍♂️\nAlles oder nichts. Ehre oder Tod. All in or nothing. Hitler oder Merkel.\n\nDann spielt halt jetzt noch den Sieg aus. 3vs3 Basketball, Daumencatchen, Schnick-Schnack-Schnuck oder so. Könnt ihr euch aussuchen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
+
+
+    message = f'Also habt ihr mit {user_team_beers}:{opponent_team_beers} gegen Team \"{opponent_team_name}\" ({opponent_team_kuerzel}) {verb_lose_or_win}?'
+    update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(keyboard_everything_correct))
+    return SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
+
+def spiel_eintragen__spiel_final_abschicken(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
+    answer_string = update.message.text
+    update.message.reply_text("-- Dialog beendet --", reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
@@ -407,6 +464,8 @@ def main():
                 MessageHandler(Filters.text, spiel_eintragen__ergebnis_erfragen_team2)],
             SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2: [
                 MessageHandler(Filters.text, spiel_eintragen__auf_richtigkeit_pruefen)],
+            SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN: [
+                MessageHandler(Filters.text, spiel_eintragen__spiel_final_abschicken)],
             EINSTELLUNGEN: [
                 MessageHandler(Filters.regex('^(' + keyboard_einstellungen_team_einstellen + ')$'), einstellungen__team_aendern__moegliche_teams_zeigen)],
             EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN: [
