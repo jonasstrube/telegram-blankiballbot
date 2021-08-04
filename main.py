@@ -432,12 +432,13 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
 
     chosen_team_kuerzel = context.chat_data['temp_einstellungen_team_aendern_chosen_team_kuerzel']
     password = update.message.text
-    try: update.message.delete()
-    except: pass # bot could not delete message (most likely because he doesnt have the rights to do that, for example in a group)
     
     request_string = 'https://blankiball.de/api/team/check_password.php?kuerzel=' + str(chosen_team_kuerzel) + '&pw=' + password
     answer_api = requests.get(request_string) # ask if password is right for this team
     answer = json.loads(answer_api.text)['records']
+    
+    try: update.message.delete()
+    except: pass # bot could not delete message (most likely because he doesnt have the rights to do that, for example in a group)
     
     if not len(answer) == 0:
         chosen_team = answer[0] # if multiple teams have the same kuerzel and password, the first is chosen for the login
