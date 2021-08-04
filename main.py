@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 class Spiel:
 
-    def __init__(self, id: int = 0, timestamp: str = None, fk_begegnung: int = None, biereheimteam: int = None, biereauswaertsteam: int = None, austragungsdatum: date = None, who_inserted_or_updated_last: str = None) -> None:
+    def __init__(self, id: int = None, timestamp: str = None, fk_begegnung: int = None, biereheimteam: int = None, biereauswaertsteam: int = None, austragungsdatum: date = None, who_inserted_or_updated_last: str = None) -> None:
         self.id = id
         self.timestamp = timestamp
         self.fk_begegnung = fk_begegnung
@@ -213,14 +213,10 @@ def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackCo
             chosen_begegnung = begegnung
             break
 
-    # else: # kuerzel not set. in last method team_id and team_kuerzel were checked. something went wrong
-    #     update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
-    #     return HOME
-
     current_spiel = Spiel()
-    context.chat_data['temp_spiel_eintragen__opponent_team'] = opponent_team #TODO delete after use
-    context.chat_data['temp_spiel_eintragen__begegnung'] = chosen_begegnung #TODO delete after use
-    context.chat_data['temp_spiel_eintragen__spiel'] = current_spiel #TODO delete after use
+    context.chat_data['temp_spiel_eintragen__opponent_team'] = opponent_team
+    context.chat_data['temp_spiel_eintragen__begegnung'] = chosen_begegnung
+    context.chat_data['temp_spiel_eintragen__spiel'] = current_spiel
     del(context.chat_data['temp_spiel_eintragen__possible_opponent_teams'])
     del(context.chat_data['temp_spiel_eintragen__possible_begegnungen'])
 
@@ -311,8 +307,55 @@ def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackCo
 
 def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
     answer_string = update.message.text
-    update.message.reply_text("-- Dialog beendet --", reply_markup=ReplyKeyboardMarkup(keyboard_main))
-    return HOME
+
+    # user said data is correct
+    if answer_string == keyboard_everything_correct[0][0]:
+        current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
+        opponent_team = context.chat_data.get('temp_spiel_eintragen__opponent_team')
+        current_spiel: Spiel = context.chat_data.get('temp_spiel_eintragen__spiel')
+        user_team_kuerzel = context.user_data.get('team_kuerzel')
+        
+        # set the member variables of the current spiel, that the user didnt set himself
+        current_spiel.fk_begegnung = current_begegenung['id']
+        if user_team_kuerzel:
+            current_spiel.who_inserted_or_updated_last = user_team_kuerzel
+        else: # kuerzel not set. at begin of dialog team_id and team_kuerzel were checked. something went wrong until now
+            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103826. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
+
+        # remove unset variables from current spiel
+        spiel_json: dict = current_spiel.__dict__ # __dict__ returns the object in json format (dict in python = json)
+        for key, value in dict(spiel_json).items():
+            if value is None:
+                del(spiel_json[key])
+        
+        # send current spiel to server!
+        answer_api = requests.post('https://blankiball.de/api/spiel/create.php',json=spiel_json)
+        try: 
+            if not json.loads(answer_api.text)['message'] == 'Spiel was created.':
+                raise Exception("API didnt return that Spiel was created")
+        except:
+            update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103827. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
+
+        # delete all temp data
+        del context.chat_data['temp_spiel_eintragen__opponent_team']
+        del context.chat_data['temp_spiel_eintragen__begegnung']
+        del context.chat_data['temp_spiel_eintragen__spiel']
+
+        # TODO je nach Sieg oder Niederlage spezielle Nachricht. Jeweils mit GIF. 
+        update.message.reply_text("Okay nice, Ergebnis ist eingetragen 👌", reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
+    
+    # user said data is not correct
+    elif answer_string == keyboard_everything_correct[0][1]:
+        update.message.reply_text('Diggi 🤦‍♂️\n\nDann auf gehts, gib noch mal ein. Aber ich hab nicht ewig Zeit ja?? Hab bald Feierabend nämlich. Dann geh ich mit meinen Freund*innen saufen. Mal so richtig die Sau rauslassen nach dem ganzen Kack hier 🤮', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
+    # answer is not one of the possible answers on the keyboard
+    else:
+        update.message.reply_text('Du musst mir schon mit dem antworten was ich dir zur Auswahl gebe 💁', reply_markup=ReplyKeyboardMarkup(keyboard_everything_correct))
+        return SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
+
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
     keyboard_answer =[['Team einstellen']]
