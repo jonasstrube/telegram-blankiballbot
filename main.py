@@ -362,7 +362,6 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         update.message.reply_text('Du musst mir schon mit dem antworten was ich dir zur Auswahl gebe 💁', reply_markup=ReplyKeyboardMarkup(keyboard_everything_correct))
         return SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
 
-
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
     keyboard_answer =[['Team einstellen']]
     update.message.reply_text('Aye Aye! Was willst du einstellen?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
@@ -446,8 +445,10 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
         context.chat_data['team_kuerzel'] = chosen_team['kuerzel']
 
         # delete data from legacy users that logged in when team data was stored in user_data
-        del(context.user_data['team_id'])
-        del(context.user_data['team_kuerzel'])
+        try: del(context.user_data['team_id'])
+        except: pass # team_id is not there or user_data is not even initialized
+        try: del(context.user_data['team_kuerzel'])
+        except: pass # team_kuerzel is not there or user_data is not even initialized
         
         update.message.reply_text('Passwort stimmt ✅\n\nDu bist für Team "' + chosen_team['name'] + '"angemeldet 👌\n\nJetzt kann ich für dich eure Spielergebnisse eintragen, dir euren Spielplan zeigen etc', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     else:
