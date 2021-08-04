@@ -98,6 +98,10 @@ keyboard_biere_ergebnis = [
     [2, 3]
 ]
 
+keyboard_everything_correct = [
+    ["Ja richtig", "Upsi lol, ne da hab ich wohl nen Fehler gemacht"]
+]
+
 # ---------------------------------------------
 
 def admin_status(update: Update, context: CallbackContext) -> None:
@@ -233,7 +237,6 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
         update.message.reply_text('Du musst schon ne Zahl zwischen 0 und 3 eingeben. Alles andere kann ich in meine Akten nicht eintragen', reply_markup=ReplyKeyboardMarkup(keyboard_biere_ergebnis))
         return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1
 
-    # TODO Biere des*r Eintragenden in biereheimteam / biereauswaertsteam eintragen (welches Team seins*ihrs ist, muss man herausfinden anhand der ids in Begegnung die in chat_data gespeichert ist (fk_heimteam, fk_auswaertsteam)) 
     current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
     user_team_id = context.user_data.get('team_id')
     current_spiel: Spiel = context.chat_data.get('temp_spiel_eintragen__spiel')
@@ -246,7 +249,6 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
         update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103003. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME    
 
-    # TODO get bottles that the second team managed to drink
     update.message.reply_text('Wie viele Flaschen haben eure Gegner*innen ausgetrunken? (Strafbiere zählen immer noch nicht)', reply_markup=ReplyKeyboardMarkup(keyboard_biere_ergebnis))
     return SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2
 
