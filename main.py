@@ -182,7 +182,8 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after st
             return HOME
             pass
         else: 
-            # TODO update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
+            # TODO make a guess who he is based on his phone number. phone number can be compared to all phone numbers in database. API should get the phone number and client gets the user who the number belongs to
+            # for example: update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst, aber deiner Telefonnummer nach könntest du "Max" aus Team "Beispielteam" sein. Stimmt das?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
             update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du deine Identität bestätigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
@@ -246,7 +247,7 @@ def spiel_eintragen__ergebnis_erfragen_team2(update: Update, context: CallbackCo
     elif current_begegenung['fk_auswaertsteam'] == user_team_id:
         current_spiel.biereauswaertsteam = biere_userteam
     else:
-        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103003. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103823. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME    
 
     update.message.reply_text('Wie viele Flaschen haben eure Gegner*innen ausgetrunken? (Strafbiere zählen immer noch nicht)', reply_markup=ReplyKeyboardMarkup(keyboard_biere_ergebnis))
@@ -271,7 +272,7 @@ def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackCo
     elif not current_spiel.biereauswaertsteam and current_begegenung['fk_auswaertsteam'] == opponent_team['id']:
         current_spiel.biereauswaertsteam = biere_gegnerinnenteam
     else:
-        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103004. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103824. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME    
 
     user_team_id = context.user_data.get('team_id')
@@ -287,7 +288,7 @@ def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackCo
         opponent_team_beers = current_spiel.biereheimteam
     else:
         # TODO send error messages in central method with errorcode
-        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103005. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103825. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME
 
     # get opponent team name and kuerzel
