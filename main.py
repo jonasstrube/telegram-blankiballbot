@@ -314,11 +314,19 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         opponent_team = context.chat_data.get('temp_spiel_eintragen__opponent_team')
         current_spiel: Spiel = context.chat_data.get('temp_spiel_eintragen__spiel')
         user_team_kuerzel = context.user_data.get('team_kuerzel')
+        user_telegram_username: str = update.message.from_user.username
+        user_telegram_firstname: str = update.message.from_user.first_name
         
         # set the member variables of the current spiel, that the user didnt set himself
         current_spiel.fk_begegnung = current_begegenung['id']
         if user_team_kuerzel:
-            current_spiel.who_inserted_or_updated_last = user_team_kuerzel
+            if user_telegram_username:
+                current_spiel.who_inserted_or_updated_last = user_team_kuerzel + '@' + user_telegram_username
+            elif user_telegram_firstname:
+                current_spiel.who_inserted_or_updated_last = user_team_kuerzel + '@' + user_telegram_firstname
+            else:
+                current_spiel.who_inserted_or_updated_last = user_team_kuerzel
+
         else: # kuerzel not set. at begin of dialog team_id and team_kuerzel were checked. something went wrong until now
             update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103826. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
