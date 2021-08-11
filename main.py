@@ -408,7 +408,7 @@ def einstellungen__team_aendern__team_verifizieren(update: Update, context: Call
     chosen_team = None
     if(not admin_mode):
         for team in possible_teams:
-            if team['kuerzel'] == team_kuerzel and team['name'] == team_name:
+            if team['kuerzel'] == team_kuerzel and team['name'].strip() == team_name.strip():
                 chosen_team = team
                 break
     else:
