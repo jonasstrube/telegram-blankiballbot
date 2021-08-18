@@ -208,6 +208,10 @@ def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackCo
             opponent_team = team
             break
 
+    if not opponent_team:
+        update.message.reply_text('Dein angegebenes Team hab ich nicht gefunden. Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103828. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
+
     possible_begegnungen = context.chat_data['temp_spiel_eintragen__possible_begegnungen']
 
     chosen_begegnung = None
