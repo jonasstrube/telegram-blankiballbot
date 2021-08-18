@@ -407,7 +407,11 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     # delete temp data
     del context.chat_data['temp_spiel_eintragen__begegnung']
     
-    update.message.reply_text(f'Okay, wurde an API geschickt! An API geschickter Begegnung-Status: {new_status}', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    if new_status == 1:
+        answer_text = 'Okay, dann have fun!'
+    else:
+        answer_text = 'Okay, ihr seid also fertig. Well played!'
+    update.message.reply_text(answer_text, reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
