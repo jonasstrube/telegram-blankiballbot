@@ -398,23 +398,16 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
             team_user_kuerzel = team_kuerzel
 
     # make json of begegnung status
-    # TODO see if json format is compatible with API
     begegnung_status_json: dict = { "status" : new_status}
     
     # send current spiel to server!
     begegnung_id = current_begegenung['id']
     answer_api = requests.post(f'https://blankiball.de/api/begegnung/update.php?id={begegnung_id}&changing_team_kuerzel={team_user_kuerzel}',json=begegnung_status_json)
     
-    # TODO remove http_code variable when API and bot work together nicely again
-    if answer_api.text == '    \r\n':
-        http_code = 500
-    else:
-        http_code = 200
-    
     # delete temp data
     del context.chat_data['temp_spiel_eintragen__begegnung']
     
-    update.message.reply_text(f'Okay, wurde an API geschickt! An API geschickter Begegnung-Status: {new_status}, HTTP-Code von API: {http_code}', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    update.message.reply_text(f'Okay, wurde an API geschickt! An API geschickter Begegnung-Status: {new_status}', reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
