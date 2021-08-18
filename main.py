@@ -61,7 +61,7 @@ class Spiel:
 
 # --------------- global vars ----------------
 
-HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2, SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(8)
+HOME, SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM1, SPIEL_EINTRAGEN__ERGEBNIS_EINTRAGEN_TEAM2, SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN, SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN, EINSTELLUNGEN, EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN, EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN = range(9)
 
 keyboard_main_teaser_how_long = 'Wann geht das Turnier endlich los? 😍'
 keyboard_main_teaser_HOW_LONG = 'WIE LANGE NOCH? 😡'
@@ -100,6 +100,11 @@ keyboard_biere_ergebnis = [
 
 keyboard_everything_correct = [
     ["Ja richtig", "Upsi lol, ne da hab ich wohl nen Fehler gemacht"]
+]
+
+keyboard_spiel_eintragen_final = [
+    ["Ergebnis ist final"],
+    ["Wir spielen noch weiter"]
 ]
 
 # ---------------------------------------------
@@ -346,12 +351,13 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
 
         # delete all temp data
         del context.chat_data['temp_spiel_eintragen__opponent_team']
-        del context.chat_data['temp_spiel_eintragen__begegnung']
         del context.chat_data['temp_spiel_eintragen__spiel']
 
         # TODO je nach Sieg oder Niederlage spezielle Nachricht. Jeweils mit GIF. 
-        update.message.reply_text("Okay nice, Ergebnis ist eingetragen 👌", reply_markup=ReplyKeyboardMarkup(keyboard_main))
-        return HOME
+
+        update.message.reply_text("Okay nice, Ergebnis ist eingetragen 👌")
+        update.message.reply_text("Ist das Ergebnis dann jetzt final? Oder macht ihr nen Best of 5 oder so?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
+        return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
     
     # user said data is not correct
     elif answer_string == keyboard_everything_correct[0][1]:
@@ -361,6 +367,55 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
     else:
         update.message.reply_text('Du musst mir schon mit dem antworten was ich dir zur Auswahl gebe 💁', reply_markup=ReplyKeyboardMarkup(keyboard_everything_correct))
         return SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN
+
+def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
+    answer_string = update.message.text
+
+    if answer_string == keyboard_spiel_eintragen_final[0][0]:
+        # status = finalized
+        new_status = 5 
+    elif answer_string == keyboard_spiel_eintragen_final[1][0]:
+        # status = open
+        new_status = 1 
+    else:
+        update.message.reply_text('Du musst mir schon mit dem antworten was ich dir zur Auswahl gebe 💁', reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
+        # return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
+        return HOME
+    
+
+    current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
+    team_kuerzel = context.chat_data.get('team_kuerzel')
+    user_telegram_username: str = update.message.from_user.username
+    user_telegram_firstname: str = update.message.from_user.first_name
+
+    # set kuerzel of team with user name (so that we know who changed data using the bot)
+    if team_kuerzel:
+        if user_telegram_username:
+            team_user_kuerzel = team_kuerzel + '@' + user_telegram_username
+        elif user_telegram_firstname:
+            team_user_kuerzel = team_kuerzel + '@' + user_telegram_firstname
+        else:
+            team_user_kuerzel = team_kuerzel
+
+    # make json of begegnung status
+    # TODO see if json format is compatible with API
+    begegnung_status_json: dict = { "status" : new_status}
+    
+    # send current spiel to server!
+    begegnung_id = current_begegenung['id']
+    answer_api = requests.post(f'https://blankiball.de/api/begegnung/update.php?id={begegnung_id}&changing_team_kuerzel={team_user_kuerzel}',json=begegnung_status_json)
+    
+    # TODO remove http_code variable when API and bot work together nicely again
+    if answer_api.text == '    \r\n':
+        http_code = 500
+    else:
+        http_code = 200
+    
+    # delete temp data
+    del context.chat_data['temp_spiel_eintragen__begegnung']
+    
+    update.message.reply_text(f'Okay, wurde an API geschickt! An API geschickter Begegnung-Status: {new_status}, HTTP-Code von API: {http_code}', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+    return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
     keyboard_answer =[['Team einstellen']]
@@ -523,6 +578,8 @@ def main():
                 MessageHandler(Filters.text, spiel_eintragen__auf_richtigkeit_pruefen)],
             SPIEL_EINTRAGEN__ERGEBNIS_BESTAETIGEN: [
                 MessageHandler(Filters.text, spiel_eintragen__spiel_final_speichern)],
+            SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN: [
+                MessageHandler(Filters.text, spiel_eintragen__begegnung_finalisieren)],
             EINSTELLUNGEN: [
                 MessageHandler(Filters.regex('^(' + keyboard_einstellungen_team_einstellen + ')$'), einstellungen__team_aendern__moegliche_teams_zeigen)],
             EINSTELLUNGEN__TEAM_AENDERN__TEAM_AUSSUCHEN: [
