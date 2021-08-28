@@ -517,7 +517,7 @@ def einstellungen__team_aendern__team_verifizieren_und_speichern(update: Update,
     return HOME
 
 def zeit_normal(update: Update, context: CallbackContext) -> int: # after state HOME
-    time_until_tournament = datetime(2021, 9, 6, 14) - datetime.now()
+    time_until_tournament = datetime(2021, 9, 6, 16) - datetime.now()
     hours, remainder = divmod(time_until_tournament.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     days_string = 'Tage' if time_until_tournament.days != 1 else 'Tag'
@@ -529,7 +529,7 @@ def zeit_normal(update: Update, context: CallbackContext) -> int: # after state 
     return HOME
 
 def zeit_angeschrien(update: Update, context: CallbackContext) -> int: # after state HOME
-    time_until_tournament = datetime(2021, 9, 6, 14) - datetime.now()
+    time_until_tournament = datetime(2021, 9, 6, 16) - datetime.now()
     hours, remainder = divmod(time_until_tournament.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     days_string = 'Tage' if time_until_tournament.days != 1 else 'Tag'
