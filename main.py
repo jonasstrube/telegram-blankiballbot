@@ -346,9 +346,14 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         # send current spiel to server!
         answer_api = requests.post('https://blankiball.de/api/spiel/create.php',json=spiel_json)
         try: 
-            if not json.loads(answer_api.text)['message'] == 'Spiel was created.':
+            api_text_message = json.loads(answer_api.text)['message']
+            if api_text_message == 'Team is not authorized to add or edit data on website.':
+                update.message.reply_text('Die Akte eures Teams sagt, dass ihr leider keine Bearbeitungsrechte mehr habt. Sorry, da sind mir die Hände gebunden 🤷‍♂️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+                return HOME
+            elif not api_text_message == 'Spiel was created.':
                 raise Exception("API didnt return that Spiel was created")
         except:
+            # Höchstwahrscheinlich: die API gibt keine message zurück. Fix: API auf Fehler checken, und Daten die der API gegeben werden auf Fehler checken
             update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103827. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
