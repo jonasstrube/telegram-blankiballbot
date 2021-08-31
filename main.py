@@ -412,6 +412,18 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     # send current spiel to server!
     begegnung_id = current_begegenung['id']
     answer_api = requests.post(f'https://blankiball.de/api/begegnung/update.php?id={begegnung_id}&changing_team_kuerzel={team_user_kuerzel}',json=begegnung_status_json)
+
+    try: 
+        api_text_message = json.loads(answer_api.text)['message']
+        if api_text_message == 'Team is not authorized to add or edit data on website.':
+            update.message.reply_text('Die Akte eures Teams sagt, dass ihr leider keine Bearbeitungsrechte mehr habt. Sorry, da sind mir die Hände gebunden 🤷‍♂️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
+        elif not api_text_message == 'Begegnung was updated.':
+            raise Exception("API didnt return that Begegnung was created")
+    except:
+        # Höchstwahrscheinlich: die API gibt keine message zurück. Fix: API auf Fehler checken, und Daten die der API gegeben werden auf Fehler checken
+        update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103829. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
     
     # delete temp data
     del context.chat_data['temp_spiel_eintragen__begegnung']
