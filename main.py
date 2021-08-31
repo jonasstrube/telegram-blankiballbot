@@ -413,8 +413,10 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
         elif user_telegram_firstname:
             team_user_kuerzel =  user_telegram_firstname + '@' + team_kuerzel
         else:
-            # TODO Message dass User eingeloggt sein muss, und zurück zu HOME für Settings
             team_user_kuerzel = team_kuerzel
+    else: 
+        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du deine Identität bestätigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        return HOME
 
     # make json of begegnung status
     begegnung_status_json: dict = { "status" : new_status}
