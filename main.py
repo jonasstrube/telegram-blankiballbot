@@ -388,8 +388,7 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
         new_status = 1 
     else:
         update.message.reply_text('Du musst mir schon mit dem antworten was ich dir zur Auswahl gebe 💁', reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
-        # return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
-        return HOME
+        return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
     
 
     current_begegenung = context.chat_data.get('temp_spiel_eintragen__begegnung')
