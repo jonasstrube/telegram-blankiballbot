@@ -456,6 +456,33 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     update.message.reply_text(answer_text, reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
+def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after state HOME
+
+    # TODO get all open Begegnungen vs these teams
+    open_begegnungen = None
+
+    # TODO get all opponent teams
+    opponent_teams = None
+
+    # TODO get all Spiele for these Begegnungen
+    spiele_to_begegnungen = None
+
+    answer = (
+        "Folgende Gegner*innen warten auf euch:\n"
+        "\n"
+        "Team \"Megateam\" (MT) - Stand 1:3\n"
+        "Spiel 1: Niederlage 1:3\n"
+        "Spiel 2: Niederlage 2:3\n"
+        "Spiel 3: Sieg 3:1\n"
+        "Spiel 4: Niederlage 2:3\n"
+        "Spiel 5: Unentschieden 2:2\n"
+        "\n"
+        "Team \"Baum\" (BA) -  Stand 0:1\n"
+        "Spiel 1: Niederlage 0:3\n"
+    )
+    update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main))
+    return HOME
+
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
     keyboard_answer =[['Team einstellen']]
     update.message.reply_text('Aye Aye! Was willst du einstellen?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
@@ -605,6 +632,7 @@ def main():
             HOME: [
                 MessageHandler(Filters.regex('^(' +  keyboard_main_spiel_eintragen +')$'), spiel_eintragen),
                 MessageHandler(Filters.regex('^(' +  keyboard_main_settings +')$'), einstellungen_zeigen),
+                MessageHandler(Filters.regex('^(' +  keyboard_main_spielplan_anzeigen +')$'), spielplan_anzeigen),
                 MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_how_long.replace('?', '\?') +')$'), zeit_normal),
                 MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_HOW_LONG.replace('?', '\?') +')$'), zeit_angeschrien),
                 MessageHandler(Filters.regex('^(' +  keyboard_main_teaser_features.replace('?', '\?') +')$'), mehr_features)
