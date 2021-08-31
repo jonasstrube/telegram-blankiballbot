@@ -379,7 +379,7 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
     
     # user said data is not correct
-    elif answer_string == keyboard_everything_correct[0][1]:
+    elif answer_string == keyboard_everything_correct[1][0]:
         update.message.reply_text('Diggi 🤦‍♂️\n\nDann auf gehts, gib noch mal ein. Aber ich hab nicht ewig Zeit ja?? Hab bald Feierabend nämlich. Dann geh ich mit meinen Freund*innen saufen. Mal so richtig die Sau rauslassen nach dem ganzen Kack hier 🤮', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME
     # answer is not one of the possible answers on the keyboard
