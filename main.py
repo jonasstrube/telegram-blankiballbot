@@ -349,12 +349,22 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         try: 
             api_text_message = json.loads(answer_api.text)['message']
             if api_text_message == 'Team is not authorized to add or edit data on website.':
+                # TODO log all data and arguments that I sent to API
                 update.message.reply_text('Die Akte eures Teams sagt, dass ihr leider keine Bearbeitungsrechte mehr habt. Sorry, da sind mir die Hände gebunden 🤷‍♂️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+                return HOME
+            if api_text_message == 'Unable to create Spiel.':
+                # TODO log all data and arguments that I sent to API
+                update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103831. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+                return HOME
+            if api_text_message == 'Unable to create Spiel. Data is incomplete.':
+                # TODO log all data and arguments that I sent to API
+                update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103832. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
                 return HOME
             elif not api_text_message == 'Spiel was created.':
                 raise Exception("API didnt return that Spiel was created")
         except:
             # Höchstwahrscheinlich: die API gibt keine message zurück. Fix: API auf Fehler checken, und Daten die der API gegeben werden auf Fehler checken
+            # TODO log all data and arguments that I sent to API
             update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103827. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
@@ -415,13 +425,19 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
 
     try: 
         api_text_message = json.loads(answer_api.text)['message']
-        if api_text_message == 'Team is not authorized to add or edit data on website.':
+        if api_text_message == 'Unable to update Begegnung. Team is not authorized to add or edit data on website.':
             update.message.reply_text('Die Akte eures Teams sagt, dass ihr leider keine Bearbeitungsrechte mehr habt. Sorry, da sind mir die Hände gebunden 🤷‍♂️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
+        if api_text_message == 'Unable to update Begegnung. No id or no changing_team_kuerzel was given in arguments or no status was given in body.':
+            # Fix: Daten die an die API geschickt werden auf Fehler checken
+            update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103829. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
         elif not api_text_message == 'Begegnung was updated.':
-            raise Exception("API didnt return that Begegnung was created")
+            # API didnt return that Begegnung was created
+            update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103830. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
     except:
-        # Höchstwahrscheinlich: die API gibt keine message zurück. Fix: API auf Fehler checken, und Daten die der API gegeben werden auf Fehler checken
+        # Höchstwahrscheinlich: die API gibt keine message zurück. Fix: API auf Fehler checken, und Daten die an die API geschickt werden auf Fehler checken
         update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103829. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME
     
