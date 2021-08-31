@@ -304,8 +304,7 @@ def spiel_eintragen__auf_richtigkeit_pruefen(update: Update, context: CallbackCo
     elif opponent_team_beers > user_team_beers:
         verb_lose_or_win = "verloren"
     elif opponent_team_beers == user_team_beers:
-        update.message.reply_text('Loide, Unentschieden gibts nicht bei Blankiball 🤦‍♂️\nAlles oder nichts. Ehre oder Tod. All in or nothing. Hitler oder Merkel.\n\nDann spielt halt jetzt noch den Sieg aus. 3vs3 Basketball, Daumencatchen, Schnick-Schnack-Schnuck oder so. Könnt ihr euch aussuchen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
-        return HOME
+        verb_lose_or_win = "Unentschieden gespielt"
 
 
     message = f'Also habt ihr mit {user_team_beers}:{opponent_team_beers} gegen Team \"{opponent_team_name}\" ({opponent_team_kuerzel}) {verb_lose_or_win}?'
