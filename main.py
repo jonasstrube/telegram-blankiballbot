@@ -348,7 +348,7 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         answer_api = requests.post('https://blankiball.de/api/spiel/create.php',json=spiel_json)
         try: 
             api_text_message = json.loads(answer_api.text)['message']
-            if api_text_message == 'Team is not authorized to add or edit data on website.':
+            if api_text_message == 'Unable to create Spiel. Team is not authorized to add or edit data on website.':
                 # TODO log all data and arguments that I sent to API
                 update.message.reply_text('Die Akte eures Teams sagt, dass ihr leider keine Bearbeitungsrechte mehr habt. Sorry, da sind mir die Hände gebunden 🤷‍♂️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
                 return HOME
