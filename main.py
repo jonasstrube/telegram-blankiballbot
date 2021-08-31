@@ -188,7 +188,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after st
             return HOME
             pass
         else: 
-            update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du deine Identität bestätigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103833. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
 def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN
@@ -415,7 +415,7 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
         else:
             team_user_kuerzel = team_kuerzel
     else: 
-        update.message.reply_text('Ich weiß noch nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du deine Identität bestätigen', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103834. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME
 
     # make json of begegnung status
