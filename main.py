@@ -372,10 +372,13 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         del context.chat_data['temp_spiel_eintragen__opponent_team']
         del context.chat_data['temp_spiel_eintragen__spiel']
 
-        # TODO je nach Sieg oder Niederlage spezielle Nachricht. Jeweils mit GIF. 
+        # TODO je nach Sieg oder Niederlage spezielle Nachricht. Jeweils mit GIF.
+
+        opponent_team_name = opponent_team['name']
+        opponent_team_kuerzel = opponent_team['kuerzel']
 
         update.message.reply_text("Okay nice, Ergebnis ist eingetragen 👌")
-        update.message.reply_text("Ist das Ergebnis dann jetzt final? Oder macht ihr nen Best of 5 oder so?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
+        update.message.reply_text("Seid ihr mit Team \"" + opponent_team_name + "\" (" + opponent_team_kuerzel + ") dann fertig? Oder macht ihr nen Best of 5 oder so?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
         return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
     
     # user said data is not correct
