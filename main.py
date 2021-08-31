@@ -99,7 +99,8 @@ keyboard_biere_ergebnis = [
 ]
 
 keyboard_everything_correct = [
-    ["Ja richtig", "Upsi lol, ne da hab ich wohl nen Fehler gemacht"]
+    ["Ja richtig"],
+    ["Upsi lol, ne da hab ich wohl nen Fehler gemacht"]
 ]
 
 keyboard_spiel_eintragen_final = [
