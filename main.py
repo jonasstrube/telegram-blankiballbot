@@ -423,14 +423,14 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     
     # send current spiel to server!
     begegnung_id = current_begegenung['id']
-    answer_api = requests.post(f'https://blankiball.de/api/begegnung/update.php?id={begegnung_id}&changing_team_kuerzel={team_user_kuerzel}',json=begegnung_status_json)
+    answer_api = requests.post(f'https://blankiball.de/api/begegnung/update.php?id={begegnung_id}&changing_team_and_user_tag={team_user_kuerzel}',json=begegnung_status_json)
 
     try: 
         api_text_message = json.loads(answer_api.text)['message']
         if api_text_message == 'Unable to update Begegnung. Team is not authorized to add or edit data on website.':
             update.message.reply_text('Die Akte über dein Team sagt, dass ihr leider keine Bearbeitungsrechte mehr habt. Sorry, da sind mir die Hände gebunden 🤷‍♂️', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
-        if api_text_message == 'Unable to update Begegnung. No id or no changing_team_kuerzel was given in arguments or no status was given in body.':
+        if api_text_message == 'Unable to update Begegnung. No id or no changing_team_and_user_tag was given in arguments or no status was given in body.':
             # Fix: Daten die an die API geschickt werden auf Fehler checken
             update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103829. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
