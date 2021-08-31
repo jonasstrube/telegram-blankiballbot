@@ -327,9 +327,9 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         current_spiel.fk_begegnung = current_begegenung['id']
         if user_team_kuerzel:
             if user_telegram_username:
-                current_spiel.who_inserted_or_updated_last = user_team_kuerzel + '@' + user_telegram_username
+                current_spiel.who_inserted_or_updated_last = user_telegram_username + '@' + user_team_kuerzel
             elif user_telegram_firstname:
-                current_spiel.who_inserted_or_updated_last = user_team_kuerzel + '@' + user_telegram_firstname
+                current_spiel.who_inserted_or_updated_last = user_telegram_firstname + '@' + user_team_kuerzel 
             else:
                 current_spiel.who_inserted_or_updated_last = user_team_kuerzel
 
@@ -394,9 +394,9 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     # set kuerzel of team with user name (so that we know who changed data using the bot)
     if team_kuerzel:
         if user_telegram_username:
-            team_user_kuerzel = team_kuerzel + '@' + user_telegram_username
+            team_user_kuerzel = user_telegram_username + '@' + team_kuerzel
         elif user_telegram_firstname:
-            team_user_kuerzel = team_kuerzel + '@' + user_telegram_firstname
+            team_user_kuerzel =  user_telegram_firstname + '@' + team_kuerzel
         else:
             team_user_kuerzel = team_kuerzel
 
