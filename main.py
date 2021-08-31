@@ -403,6 +403,7 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
         elif user_telegram_firstname:
             team_user_kuerzel =  user_telegram_firstname + '@' + team_kuerzel
         else:
+            # TODO Message dass User eingeloggt sein muss, und zurück zu HOME für Settings
             team_user_kuerzel = team_kuerzel
 
     # make json of begegnung status
@@ -418,7 +419,7 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     if new_status == 1:
         answer_text = 'Okay, dann have fun!'
     else:
-        answer_text = 'Okay, ihr seid also fertig. Well played!'
+        answer_text = 'Okay, well played!'
     update.message.reply_text(answer_text, reply_markup=ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
