@@ -147,7 +147,7 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after st
                     possible_opponent_team_ids.append(begegnung['fk_auswaertsteam'])
                     
             body_json = {"team_ids" : possible_opponent_team_ids}
-            answer_api = requests.get('https://blankiball.de/api/team/read.php', json=body_json) # get all Begegnungen of the Users Team
+            answer_api = requests.get('https://blankiball.de/api/team/read.php', json=body_json) # get all possible Opponent Teams of the Users Team
             possible_opponent_teams = json.loads(answer_api.text)['records']
 
             context.chat_data['temp_spiel_eintragen__possible_opponent_teams'] = possible_opponent_teams
