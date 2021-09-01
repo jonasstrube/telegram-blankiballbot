@@ -457,31 +457,90 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     return HOME
 
 def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after state HOME
+    team_id = context.chat_data.get('team_id')
+    team_kuerzel = context.chat_data.get('team_kuerzel')
 
-    # TODO get all open Begegnungen vs these teams
     open_begegnungen = None
+    if team_id and team_kuerzel:
+        answer_api = requests.get('https://blankiball.de/api/begegnung/read.php?team_id=' + str(team_id)) # get all Begegnungen of the Team of the User
+        begegnungen_all = json.loads(answer_api.text)['records']
+        
+        # get all aktiv begegnungen (not abgeschlossen, not veraltet etc)
+        open_begegnungen = []
+        for begegnung in begegnungen_all:
+            if begegnung['status'] == '1': # status 1 = aktiv
+                open_begegnungen.append(begegnung)
 
-    # TODO get all opponent teams
-    opponent_teams = None
+        if open_begegnungen:
 
-    # TODO get all Spiele for these Begegnungen
-    spiele_to_begegnungen = None
+            # get all opponent team ids
+            opponent_team_ids = []
+            for begegnung in open_begegnungen:
+                if not begegnung['fk_heimteam'] == team_id:
+                    opponent_team_ids.append(begegnung['fk_heimteam'])
+                elif not begegnung['fk_auswaertsteam'] == team_id:
+                    opponent_team_ids.append(begegnung['fk_auswaertsteam'])
 
-    answer = (
-        "Folgende Gegner*innen warten auf euch:\n"
-        "\n"
-        "Team \"Megateam\" (MT) - Stand 1:3\n"
-        "Spiel 1: Niederlage 1:3\n"
-        "Spiel 2: Niederlage 2:3\n"
-        "Spiel 3: Sieg 3:1\n"
-        "Spiel 4: Niederlage 2:3\n"
-        "Spiel 5: Unentschieden 2:2\n"
-        "\n"
-        "Team \"Baum\" (BA) -  Stand 0:1\n"
-        "Spiel 1: Niederlage 0:3\n"
-    )
-    update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main))
-    return HOME
+            # get all opponent Teams of the User
+            body_json = {"team_ids" : opponent_team_ids}
+            answer_api = requests.get('https://blankiball.de/api/team/read.php', json=body_json)
+            opponent_teams = json.loads(answer_api.text)['records']
+
+            # insert Teams into Begegnungen array
+            begegnungen_opponentteams_join = open_begegnungen
+            for opponent_team in opponent_teams:
+                if opponent_team["id"] == team_id:
+                    break
+                for begegnung in begegnungen_opponentteams_join:
+                    if begegnung['fk_heimteam'] == opponent_team["id"] or begegnung['fk_auswaertsteam'] == opponent_team["id"]:
+                        begegnung["opponentteam"] = opponent_team
+
+            # get all ids of the Begegnungen
+            begegnung_ids = []
+            for begegnung in begegnungen_opponentteams_join:
+                begegnung_ids.append(begegnung['id'])
+            
+            body_json = {"begegnung_ids" : begegnung_ids}
+            answer_api = requests.get('https://blankiball.de/api/spiel/read.php', json=body_json) # get all Spiele of the Users Begegnungen
+            done_spiele = json.loads(answer_api.text)['records']
+            
+            # insert Spiele into Begegnungen array
+            begegnung_spiel_opponentteams_join = begegnungen_opponentteams_join
+            for begegnung in begegnung_spiel_opponentteams_join:
+                begegnung["spiele"] = []
+                for spiel in done_spiele:
+                    if spiel['fk_begegnung'] == begegnung["id"]:
+                        begegnung["spiele"].append(spiel)
+            
+            # TODO build answer string. loop through each Begegnung and build the String there
+
+            answer = (
+                "Folgende Gegner*innen warten auf euch:\n"
+                "\n"
+                "Team \"Megateam\" (MT) - Stand 1:3\n"
+                "Spiel 1: Niederlage 1:3\n"
+                "Spiel 2: Niederlage 2:3\n"
+                "Spiel 3: Sieg 3:1\n"
+                "Spiel 4: Niederlage 2:3\n"
+                "Spiel 5: Unentschieden 2:2\n"
+                "\n"
+                "Team \"Baum\" (BA) -  Stand 0:1\n"
+                "Spiel 1: Niederlage 0:3\n"
+            )
+        else:
+            # TODO better answer when no open Begegnungen are found
+            answer = "Ihr habt grad keine Spiele :)"
+            pass
+        update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main))
+        return HOME
+    else:
+        if team_id and not team_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
+            update.message.reply_text('Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
+            pass
+        else: 
+            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103835. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
     keyboard_answer =[['Team einstellen']]
