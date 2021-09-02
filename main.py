@@ -457,12 +457,12 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
     return HOME
 
 def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after state HOME
-    team_id = context.chat_data.get('team_id')
-    team_kuerzel = context.chat_data.get('team_kuerzel')
+    userteam_id = context.chat_data.get('team_id')
+    userteam_kuerzel = context.chat_data.get('team_kuerzel')
 
     open_begegnungen = None
-    if team_id and team_kuerzel:
-        answer_api = requests.get('https://blankiball.de/api/begegnung/read.php?team_id=' + str(team_id)) # get all Begegnungen of the Team of the User
+    if userteam_id and userteam_kuerzel:
+        answer_api = requests.get('https://blankiball.de/api/begegnung/read.php?team_id=' + str(userteam_id)) # get all Begegnungen of the Team of the User
         begegnungen_all = json.loads(answer_api.text)['records']
         
         # get all aktiv begegnungen (not abgeschlossen, not veraltet etc)
@@ -476,20 +476,30 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
             # get all opponent team ids
             opponent_team_ids = []
             for begegnung in open_begegnungen:
-                if not begegnung['fk_heimteam'] == team_id:
+                if not begegnung['fk_heimteam'] == userteam_id:
                     opponent_team_ids.append(begegnung['fk_heimteam'])
-                elif not begegnung['fk_auswaertsteam'] == team_id:
+                elif not begegnung['fk_auswaertsteam'] == userteam_id:
                     opponent_team_ids.append(begegnung['fk_auswaertsteam'])
+            
+            user_and_opponent_team_ids = opponent_team_ids.append(userteam_id)
 
-            # get all opponent Teams of the User
+            # get all opponent Teams and the Team of the User
             body_json = {"team_ids" : opponent_team_ids}
             answer_api = requests.get('https://blankiball.de/api/team/read.php', json=body_json)
-            opponent_teams = json.loads(answer_api.text)['records']
+            opponent_teams_and_user_team = json.loads(answer_api.text)['records']
+
+            opponent_teams = None
+            userteam = None
+            for team in opponent_teams_and_user_team:
+                if team["id"] == userteam_id:
+                    userteam = team
+                    opponent_teams_and_user_team.remove(team)
+                    opponent_teams = opponent_teams_and_user_team
 
             # insert Teams into Begegnungen array
             begegnungen_opponentteams_join = open_begegnungen
             for opponent_team in opponent_teams:
-                if opponent_team["id"] == team_id:
+                if opponent_team["id"] == userteam_id:
                     break
                 for begegnung in begegnungen_opponentteams_join:
                     if begegnung['fk_heimteam'] == opponent_team["id"] or begegnung['fk_auswaertsteam'] == opponent_team["id"]:
@@ -512,7 +522,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
                     if spiel['fk_begegnung'] == begegnung["id"]:
                         begegnung["spiele"].append(spiel)
             
-            answer_start = "Folgende Gegner*innen warten auf euch:\n\n"
+            answer_start = "Folgende Gegner*innen warten auf dein Team, the legendary \"" + userteam["name"] + "\" (" + userteam["kuerzel"] + "):\n\n"
 
             # loop through Begegnungen
             answer_begegnungen = ""
@@ -520,9 +530,9 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
 
                 # get if userteam is heim or auswaerts
                 userteam_is_heimteam = None
-                if begegnung["fk_heimteam"] == team_id:
+                if begegnung["fk_heimteam"] == userteam_id:
                     userteam_is_heimteam = True
-                elif begegnung["fk_auswaertsteam"] == team_id:
+                elif begegnung["fk_auswaertsteam"] == userteam_id:
                     userteam_is_heimteam = False
                     pass
                 else:
@@ -582,10 +592,11 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
             # TODO better answer when no open Begegnungen are found
             answer = "Ihr habt grad keine Spiele :)"
             pass
+        
         update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main))
         return HOME
     else:
-        if team_id and not team_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
+        if userteam_id and not userteam_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
             update.message.reply_text('Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
             pass
