@@ -17,6 +17,7 @@ from datetime import (
 import requests
 import json
 import math
+import re
 
 from telegram import (
     Update,
@@ -522,7 +523,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
                     if spiel['fk_begegnung'] == begegnung["id"]:
                         begegnung["spiele"].append(spiel)
             
-            answer_start = "Folgende Gegner*innen warten auf dein Team, the legendary \"" + userteam["name"] + "\" (" + userteam["kuerzel"] + "):\n\n"
+            answer_start = re.escape("Folgende Gegner*innen warten auf dein Team, the legendary \"") + re.escape(userteam["name"]) + re.escape("\" (") + re.escape(userteam["kuerzel"]) + re.escape("):\n\n")
 
             # loop through Begegnungen
             answer_begegnungen = ""
@@ -581,7 +582,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
                     # add string for one Spiel to answer string of all Spiele of this Begegnung
                     answer_spiele = answer_spiele + "Spiel " + str(spiel_number) + ": " + string_lose_win_draw + " " + str(userteam_beers) + ":" + str(opponentteam_beers) + "\n"
                 
-                answer_single_begegnung = "Team \"" + begegnung["opponentteam"]["name"] + "\" (" + begegnung["opponentteam"]["kuerzel"] + ") - Stand " + str(wins) + ":" + str(defeats) + "\n"
+                answer_single_begegnung = "Team *" + re.escape(begegnung["opponentteam"]["name"]) + re.escape(" (") + re.escape(begegnung["opponentteam"]["kuerzel"]) + re.escape(")") + "*" + re.escape(" - Stand ") + str(wins) + ":" + str(defeats) + "\n"
 
                 # add the current Begegnung and its Spiele to the answer string of all Begegnungen
                 answer_begegnungen = answer_begegnungen + answer_single_begegnung + answer_spiele + "\n"
@@ -593,11 +594,12 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
             answer = "Ihr habt grad keine Spiele :)"
             pass
         
-        update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main), parse_mode="MarkdownV2")
         return HOME
     else:
         if userteam_id and not userteam_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
-            update.message.reply_text('Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text(
+                'Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
             pass
         else: 
