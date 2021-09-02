@@ -505,28 +505,79 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
             done_spiele = json.loads(answer_api.text)['records']
             
             # insert Spiele into Begegnungen array
-            begegnung_spiel_opponentteams_join = begegnungen_opponentteams_join
-            for begegnung in begegnung_spiel_opponentteams_join:
+            begegnung_spiele_opponentteams_join = begegnungen_opponentteams_join
+            for begegnung in begegnung_spiele_opponentteams_join:
                 begegnung["spiele"] = []
                 for spiel in done_spiele:
                     if spiel['fk_begegnung'] == begegnung["id"]:
                         begegnung["spiele"].append(spiel)
             
-            # TODO build answer string. loop through each Begegnung and build the String there
+            answer_start = "Folgende Gegner*innen warten auf euch:\n\n"
 
-            answer = (
-                "Folgende Gegner*innen warten auf euch:\n"
-                "\n"
-                "Team \"Megateam\" (MT) - Stand 1:3\n"
-                "Spiel 1: Niederlage 1:3\n"
-                "Spiel 2: Niederlage 2:3\n"
-                "Spiel 3: Sieg 3:1\n"
-                "Spiel 4: Niederlage 2:3\n"
-                "Spiel 5: Unentschieden 2:2\n"
-                "\n"
-                "Team \"Baum\" (BA) -  Stand 0:1\n"
-                "Spiel 1: Niederlage 0:3\n"
-            )
+            # loop through Begegnungen
+            answer_begegnungen = ""
+            for begegnung in begegnung_spiele_opponentteams_join:
+
+                # get if userteam is heim or auswaerts
+                userteam_is_heimteam = None
+                if begegnung["fk_heimteam"] == team_id:
+                    userteam_is_heimteam = True
+                elif begegnung["fk_auswaertsteam"] == team_id:
+                    userteam_is_heimteam = False
+                    pass
+                else:
+                    # Error! Users Team does not match any Team in one of the Begegnungs 
+                    update.message.reply_text('Da is was schief gelaufen, meine Akten scheinen fehlerhaft zu sein 🤷‍♂️\n\nWende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103836. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+                    return HOME
+                
+                # loop through Spiele in current Begegnung
+                answer_spiele = ""
+                wins = 0
+                defeats = 0
+                for index in range(len(begegnung["spiele"])):
+                    spiel_number = index + 1
+                    
+                    # get outcome as string and beers of each Team
+                    string_lose_win_draw = ""
+                    biereheimteam = begegnung["spiele"][index]["biereheimteam"]
+                    biereauswaertsteam = begegnung["spiele"][index]["biereauswaertsteam"]
+                    if userteam_is_heimteam:
+                        if biereheimteam == biereauswaertsteam:
+                            string_lose_win_draw = "Unentschieden"
+                            wins += 1
+                            defeats += 1
+                        elif biereheimteam > biereauswaertsteam:
+                            string_lose_win_draw = "Sieg"
+                            wins += 1
+                        else:
+                            string_lose_win_draw = "Niederlage"
+                            defeats += 1
+                        userteam_beers = biereheimteam
+                        opponentteam_beers = biereauswaertsteam
+                    elif not userteam_is_heimteam:
+                        if biereheimteam == biereauswaertsteam:
+                            string_lose_win_draw = "Unentschieden"
+                            wins += 1
+                            defeats += 1
+                        elif biereheimteam < biereauswaertsteam:
+                            string_lose_win_draw = "Sieg"
+                            wins += 1
+                        else:
+                            string_lose_win_draw = "Niederlage"
+                            defeats += 1
+                        userteam_beers = biereauswaertsteam
+                        opponentteam_beers = biereheimteam
+                    
+                    # add string for one Spiel to answer string of all Spiele of this Begegnung
+                    answer_spiele = answer_spiele + "Spiel " + str(spiel_number) + ": " + string_lose_win_draw + " " + str(userteam_beers) + ":" + str(opponentteam_beers) + "\n"
+                
+                answer_single_begegnung = "Team \"" + begegnung["opponentteam"]["name"] + "\" (" + begegnung["opponentteam"]["kuerzel"] + ") - Stand " + str(wins) + ":" + str(defeats) + "\n"
+
+                # add the current Begegnung and its Spiele to the answer string of all Begegnungen
+                answer_begegnungen = answer_begegnungen + answer_single_begegnung + answer_spiele + "\n"
+            
+            # set answer as the start message and the string of all Begegnungen
+            answer = answer_start + answer_begegnungen
         else:
             # TODO better answer when no open Begegnungen are found
             answer = "Ihr habt grad keine Spiele :)"
