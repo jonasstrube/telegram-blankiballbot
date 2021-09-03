@@ -384,7 +384,12 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
     
     # user said data is not correct
     elif answer_string == keyboard_everything_correct[1][0]:
-        update.message.reply_text('Diggi 🤦‍♂️\n\nDann auf gehts, gib noch mal ein. Aber ich hab nicht ewig Zeit ja?? Hab bald Feierabend nämlich. Dann geh ich mit meinen Freund*innen saufen. Mal so richtig die Sau rauslassen nach dem ganzen Kack hier 🤮', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        # When deployed on a new bot: the file_id used below wont work anymore. we have to upload the file again. use the following two commands for that:
+        # file = open("wie-kann-man-nur-so-dumm-sein.ogg", "rb")
+        # update.message.reply_voice(voice=file)
+        update.message.reply_voice(voice="AwACAgIAAxkBAAITi2EyB8svlGYvCnoLZNdXfVQjyVCbAAIXDwACLNKRSdauqrV1rTZ0IAQ") # id of "wie kann man nur so dumm sein" voice message for DEPLOYED blankiballbot on telegram servers. does not work for dev bot. I uploaded it before from my PC with open("wie-kann-man-nur-so-dumm-sein.ogg", "rb") 
+        update.message.reply_text('Dann auf gehts, gib noch mal ein. Aber ich hab nicht ewig Zeit ja?? Hab bald Feierabend nämlich. Dann geh ich mit meinen Freund*innen saufen. Mal so richtig die Sau rauslassen nach dem ganzen Kack hier 🤮', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        
         return HOME
     # answer is not one of the possible answers on the keyboard
     else:
