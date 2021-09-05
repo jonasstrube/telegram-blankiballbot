@@ -524,7 +524,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
                     if spiel['fk_begegnung'] == begegnung["id"]:
                         begegnung["spiele"].append(spiel)
             
-            answer_start = re.escape("Folgende Gegner*innen warten auf dein Team, the legendary \"") + re.escape(userteam["name"]) + re.escape("\" (") + re.escape(userteam["kuerzel"]) + re.escape("):\n\n")
+            answer_start = re.escape("Folgende Gegner*innen warten auf dein Team, the legendary ") + "*" + re.escape(userteam["name"]) + re.escape(" (") + re.escape(userteam["kuerzel"]) + re.escape(")") + "*" + re.escape(":\n\n")
 
             # loop through Begegnungen
             answer_begegnungen = ""
