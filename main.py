@@ -590,13 +590,14 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
             
             # set answer as the start message and the string of all Begegnungen
             answer = answer_start + answer_begegnungen
+            update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main), parse_mode="MarkdownV2")
+            return HOME
         else:
             # TODO better answer when no open Begegnungen are found
-            answer = "Ihr habt grad keine Spiele :)"
-            pass
+            answer = "Ihr habt grad keine anstehenden Spiele\n\nMacht doch nen Freundschaftsspiel mit Richard aus, der hat so wenige Freunde ❤️"
+            update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main))
+            return HOME
         
-        update.message.reply_text(answer, reply_markup = ReplyKeyboardMarkup(keyboard_main), parse_mode="MarkdownV2")
-        return HOME
     else:
         if userteam_id and not userteam_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
             update.message.reply_text(
