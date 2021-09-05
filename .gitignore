@@ -148,8 +148,9 @@ test.py
 
 # Database
 db/
-aoestatsbot_pp_db
 
-# continouos deployment
-send_deployment_to_server.py
+# Continouos Deployment
+telegram-blankiballbot-main.py
+
+# Design
 *.docx
