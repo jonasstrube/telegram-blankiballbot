@@ -85,10 +85,6 @@ keyboard_main = [
     [keyboard_main_faq, keyboard_main_about, keyboard_main_settings]
 ]
 
-# TODO delete for go live of bot
-keyboard_main = keyboard_main_teaser
-
-
 keyboard_einstellungen_team_einstellen = "Team einstellen"
 keyboard_einstellungen = [
     [keyboard_einstellungen_team_einstellen]
