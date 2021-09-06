@@ -72,8 +72,8 @@ keyboard_main_teaser = [
     [keyboard_main_teaser_features]
 ]
 
-keyboard_main_spiel_eintragen = '🛎 Spiel eintragen'
-keyboard_main_spielplan_anzeigen = '🎲 Spielplan'
+keyboard_main_spiel_eintragen = '🍻 Spiel eintragen'
+keyboard_main_spielplan_anzeigen = '🔮 Spielplan'
 keyboard_main_organisation = 'Organisation'
 keyboard_main_infos = 'Infos'
 keyboard_main_faq = 'FAQ'
@@ -86,7 +86,7 @@ keyboard_main = [
     # TODO implement functions [keyboard_main_organisation, keyboard_main_infos],
     # TODO implement functions [keyboard_main_faq, keyboard_main_about]
 
-keyboard_einstellungen_team_einstellen = "Team einstellen"
+keyboard_einstellungen_team_einstellen = "👨‍❤️‍💋‍👨 Team einstellen"
 keyboard_einstellungen = [
     [keyboard_einstellungen_team_einstellen]
 ]
