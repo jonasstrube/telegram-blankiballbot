@@ -72,13 +72,13 @@ keyboard_main_teaser = [
     [keyboard_main_teaser_features]
 ]
 
-keyboard_main_spiel_eintragen = 'Spiel eintragen'
-keyboard_main_spielplan_anzeigen = 'Spielplan anzeigen'
+keyboard_main_spiel_eintragen = '🛎 Spiel eintragen'
+keyboard_main_spielplan_anzeigen = '🎲 Spielplan'
 keyboard_main_organisation = 'Organisation'
 keyboard_main_infos = 'Infos'
 keyboard_main_faq = 'FAQ'
 keyboard_main_about = 'About'
-keyboard_main_settings = 'Settings'
+keyboard_main_settings = '🛠 Einstellungen'
 keyboard_main = [
     [keyboard_main_spiel_eintragen, keyboard_main_spielplan_anzeigen],
     [keyboard_main_settings]
