@@ -610,7 +610,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
             return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
-    keyboard_answer =[['Team einstellen']]
+    keyboard_answer = keyboard_einstellungen
     update.message.reply_text('Aye Aye! Was willst du einstellen?', reply_markup=ReplyKeyboardMarkup(keyboard_answer))
     return EINSTELLUNGEN
 
