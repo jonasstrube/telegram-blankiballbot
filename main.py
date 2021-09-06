@@ -81,9 +81,10 @@ keyboard_main_about = 'About'
 keyboard_main_settings = 'Settings'
 keyboard_main = [
     [keyboard_main_spiel_eintragen, keyboard_main_spielplan_anzeigen],
-    [keyboard_main_organisation, keyboard_main_infos],
-    [keyboard_main_faq, keyboard_main_about, keyboard_main_settings]
+    [keyboard_main_settings]
 ]
+    # TODO implement functions [keyboard_main_organisation, keyboard_main_infos],
+    # TODO implement functions [keyboard_main_faq, keyboard_main_about]
 
 keyboard_einstellungen_team_einstellen = "Team einstellen"
 keyboard_einstellungen = [
