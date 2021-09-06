@@ -557,8 +557,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
                     if userteam_is_heimteam:
                         if biereheimteam == biereauswaertsteam:
                             string_lose_win_draw = "Unentschieden"
-                            wins += 1
-                            defeats += 1
+                            # no one gets a point for Unentschieden
                         elif biereheimteam > biereauswaertsteam:
                             string_lose_win_draw = "Sieg"
                             wins += 1
@@ -570,8 +569,7 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
                     elif not userteam_is_heimteam:
                         if biereheimteam == biereauswaertsteam:
                             string_lose_win_draw = "Unentschieden"
-                            wins += 1
-                            defeats += 1
+                            # no one gets a point for Unentschieden
                         elif biereheimteam < biereauswaertsteam:
                             string_lose_win_draw = "Sieg"
                             wins += 1
