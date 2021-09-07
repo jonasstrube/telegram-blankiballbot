@@ -102,8 +102,8 @@ keyboard_everything_correct = [
 ]
 
 keyboard_spiel_eintragen_final = [
-    ["Ergebnis ist final"],
-    ["Wir spielen noch weiter"]
+    ["Nein, wir spielen nicht mehr"],
+    ["Ja, wir spielen noch mal"]
 ]
 
 # ---------------------------------------------
@@ -376,7 +376,7 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         opponent_team_kuerzel = opponent_team['kuerzel']
 
         update.message.reply_text("Okay nice, Ergebnis ist eingetragen 👌")
-        update.message.reply_text("Seid ihr mit Team \"" + opponent_team_name + "\" (" + opponent_team_kuerzel + ") dann fertig? Oder macht ihr nen Best of 5 oder so?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
+        update.message.reply_text("Macht ihr in der Gruppenphase jetzt noch Spiele gegen Team \"" + opponent_team_name + "\" (" + opponent_team_kuerzel + ")?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
         return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
     
     # user said data is not correct
