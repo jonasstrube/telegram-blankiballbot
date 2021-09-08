@@ -739,6 +739,9 @@ def abbrechen(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Jo, nix passiert", reply_markup = ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
+def please_start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Du musst /start eingeben damits losgeht")
+
 # ------------------ run -----------------------
 
 def main():
@@ -785,6 +788,7 @@ def main():
 
     dp.add_handler(MessageHandler(Filters.regex('^status$'), admin_status))
     dp.add_handler(conv_handler)
+    dp.add_handler(MessageHandler(Filters.all, please_start))
     
     # Start the Bot
     updater.start_polling()
