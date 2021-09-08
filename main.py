@@ -182,11 +182,11 @@ def spiel_eintragen(update: Update, context: CallbackContext) -> int: # after st
     
     else:
         if team_id and not team_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
-            update.message.reply_text('Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Drück mal unten auf den ' + keyboard_main_settings + '-Button, da kannst du alles eintragen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
             pass
         else: 
-            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103833. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Drück mal unten auf den ' + keyboard_main_settings + '-Button, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103833. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
 def spiel_eintragen__ergebnis_erfragen_team1(update: Update, context: CallbackContext) -> int: # after state SPIEL_EINTRAGEN__GEGNERAUSWAEHLEN
@@ -333,7 +333,7 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
                 current_spiel.who_inserted_or_updated_last = user_team_kuerzel
 
         else: # kuerzel not set. at begin of dialog team_id and team_kuerzel were checked. something went wrong until now
-            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103826. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Drück mal unten auf den ' + keyboard_main_settings + '-Button, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103826. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
         # remove unset variables from current spiel
@@ -421,7 +421,7 @@ def spiel_eintragen__begegnung_finalisieren(update: Update, context: CallbackCon
         else:
             team_user_kuerzel = team_kuerzel
     else: 
-        update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103834. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+        update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Drück mal unten auf den ' + keyboard_main_settings + '-Button, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103834. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
         return HOME
 
     # make json of begegnung status
@@ -600,11 +600,11 @@ def spielplan_anzeigen(update: Update, context: CallbackContext) -> int: # after
     else:
         if userteam_id and not userteam_kuerzel: # kuerzel not set, but team_id. user is logged in, but he/she logged in in earlier version. back then only the team_id was set
             update.message.reply_text(
-                'Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Die kannst du in den Settings hinterlegen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+                'Meine Abläufe haben sich erneuert, ich brauch leider noch mal deine persönlichen Daten. Drück mal unten auf den ' + keyboard_main_settings + '-Button, dann kannst du alles eintragen. Bis gleich 👋', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
             pass
         else: 
-            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Geh mal in die Settings, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103835. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
+            update.message.reply_text('Ich weiß nicht in welchem Team du spielst! Drück mal unten auf den ' + keyboard_main_settings + '-Button, da kannst du dich einloggen.\n\nWenn das nicht hilft, wende dich mal an meinen Chef, den Jonas, und gib ihm folgende Aktennummer: 103835. Wenn der Lust hat hilft er vielleicht', reply_markup=ReplyKeyboardMarkup(keyboard_main))
             return HOME
 
 def einstellungen_zeigen(update: Update, context: CallbackContext) -> int: # after state HOME
