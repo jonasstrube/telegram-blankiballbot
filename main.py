@@ -739,8 +739,11 @@ def abbrechen(update: Update, context: CallbackContext) -> int:
     update.message.reply_text("Jo, nix passiert", reply_markup = ReplyKeyboardMarkup(keyboard_main))
     return HOME
 
-def please_start(update: Update, context: CallbackContext) -> None:
+def hint_start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Du musst /start eingeben damits losgeht")
+
+def hint_keyboard(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Du musst die Buttons hier in Telegram benutzen. Wenn du die nicht siehst:\n\n*Links neben dem Emoji-Button und dem Sprachmemo-Button kannst du die öffnen*", parse_mode="markdown")
 
 # ------------------ run -----------------------
 
@@ -781,14 +784,17 @@ def main():
             EINSTELLUNGEN__TEAM_AENDERN__PASSWORT_EINGEBEN: [
                 MessageHandler(Filters.text, einstellungen__team_aendern__team_verifizieren_und_speichern)]
         },
-        fallbacks=[MessageHandler(Filters.regex('^Abbrechen$'), abbrechen)],
+        fallbacks={
+            MessageHandler(Filters.regex('^Abbrechen$'), abbrechen),
+            MessageHandler(Filters.all, hint_keyboard)
+        },
         name="home_conversation",
         persistent=True,
     )
 
     dp.add_handler(MessageHandler(Filters.regex('^status$'), admin_status))
     dp.add_handler(conv_handler)
-    dp.add_handler(MessageHandler(Filters.all, please_start))
+    dp.add_handler(MessageHandler(Filters.all, hint_start))
     
     # Start the Bot
     updater.start_polling()
