@@ -793,6 +793,7 @@ def main():
     )
 
     dp.add_handler(MessageHandler(Filters.regex('^status$'), admin_status))
+    dp.add_handler(CommandHandler('start', start))
     dp.add_handler(conv_handler)
     dp.add_handler(MessageHandler(Filters.all, hint_start))
     
