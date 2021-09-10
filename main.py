@@ -370,13 +370,35 @@ def spiel_eintragen__spiel_final_speichern(update: Update, context: CallbackCont
         del context.chat_data['temp_spiel_eintragen__opponent_team']
         del context.chat_data['temp_spiel_eintragen__spiel']
 
+        # get if its Gruppenspiel, Achtelfinale, Viertelfinale etc
+        ko_finallevel = int(current_begegenung['ko_finallevel'])
+        game_level = None
+        if ko_finallevel == 0: # Gruppenspiel
+            game_level = "in der Gruppenphase"
+        elif ko_finallevel == 1: # Spiel um Platz 3
+            game_level = "im Spiel um Platz 3"
+        elif ko_finallevel == 2: # Finale
+            game_level = "im Finale"
+        elif ko_finallevel == 3: # Halbfinale
+            game_level = "im Halbfinale"
+        elif ko_finallevel == 4: # Viertelfinale
+            game_level = "im Viertelfinale"
+        elif ko_finallevel == 5: # Achtelfinale
+            game_level = "im Achtelfinale"
+        elif ko_finallevel == 6: # Sechzehntelfinale
+            game_level = "im Sechzehntelfinale"
+        else:
+            # ERROR: ko_finallevel not in range 0 to 6
+            game_level = ""
+            pass
+
         # TODO je nach Sieg oder Niederlage spezielle Nachricht. Jeweils mit GIF.
 
         opponent_team_name = opponent_team['name']
         opponent_team_kuerzel = opponent_team['kuerzel']
 
         update.message.reply_text("Okay nice, Ergebnis ist eingetragen 👌")
-        update.message.reply_text("Macht ihr in der Gruppenphase jetzt noch Spiele gegen Team \"" + opponent_team_name + "\" (" + opponent_team_kuerzel + ")?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
+        update.message.reply_text("Macht ihr " + game_level + " jetzt noch Spiele gegen Team \"" + opponent_team_name + "\" (" + opponent_team_kuerzel + ")?", reply_markup=ReplyKeyboardMarkup(keyboard_spiel_eintragen_final))
         return SPIEL_EINTRAGEN__BEGEGNUNG_FINAL_BESTAETIGEN
     
     # user said data is not correct
